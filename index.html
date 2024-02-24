@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html lang=”en”>
+<head>
+    <title>SharpCap Eclipse Sequence Creator</title>
+    <meta charset="utf-8">
+    <meta name="viewport" 
+          content="width=device-width, initial-scale=1.0">
+</head>
+<style type="text/css">
+    h3 {
+        text-align: left;
+        padding-left: 15px;
+    }
+
+    #bodyWrapper {
+        max-width: 800px;
+        margin: auto;
+    }
+
+    .headerBlock {
+        background-color: lightskyblue;
+        margin: 0;
+        padding: 15px;
+        border-bottom: 1px solid blue;
+    }
+
+    div {
+        display: flex;
+        flex-direction: column;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    table td {
+        padding: 3px;
+    }
+
+    .params {
+        border: 1px solid;
+    }
+
+    .planDiv {
+        border: 1px solid;
+        margin: 10px auto;
+        min-width: 800px;
+        text-align: left;
+    }
+
+    .planTable {
+        width: 100%;
+    }
+
+    .planTable td {
+        border-bottom: 1px solid black;
+        text-align: center;
+    }
+
+    textarea {
+        margin-top: 15px;
+        width: 70%;
+    }
+
+    input[type="number"] {
+        text-align: right;
+        max-width: 80px;
+    }
+
+    .wideButton {
+        width: 100%;
+    }
+</style>
+ 
+<body>
+    <div id="bodyWrapper">
+        <h1 style="color: blue;">
+          SharpCap Eclipse Sequence Creator
+        </h1>
+        <span style="font-weight: bold;">NOTE: Requires <a href="https://www.sharpcap.co.uk/" target="_blank">SharpCap Pro version 4.1</a> or newer.</span>
+        <a id="instructionToggle" href="javascript://" onClick="toggleInstructions();" style="margin-top: 15px; font-size: 0.8em;">( Hide Instructions )</a>
+        <div id="instructionsDiv">
+            <b>Instructions:</b>
+            <ol style="margin-top: 3px;">
+                <li>Go to <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Eclipse Map</a>.</li>
+                <li>Zoom into your observation location and click to place the pin on the map.</li>
+                <li>Note the Partial and Full Begin and End times provided on the left side of the map.</li>
+                <li>Enter the times under <i>Eclipse Times</i> below.</li>
+                <li>Adjust the <i>Intervals</i> and <i>Cmera Settings</i> as desired below.</li>
+                <li>Add and adjust the steps for each <i>Collection Plan</i> section below.</li>
+                <li>Click the <i>Generate</i> button.</li>
+                <li>A <i>Generated Sequence</i> section will appear below.</li>
+                <li>Use the <i>Download SharpCap Sequence</i> button and save the sequence file.</li>
+                <li>In SharpCap, connect to your camera and center the Sun in your camera's view.</li>
+                <li>In SharpCap, click the <i>Sequencer</i> menu item, then <i>Run...</i></li>
+                <li>Pick the downloaded sequence file and click the <i>Open</i> button.</li>
+                <li>Monitor for an Alert sound, and banner at the top to Remove or Apply the Solar Filter around the time of Totality.</li>
+            </ol>
+        </div>
+        <table id="wrapperTable"><tr style="vertical-align: top;"><td>
+            <table class="params">
+                <tr><th colspan="2" class="headerBlock">Eclipse Times</th></tr>
+
+                <tr><td class="label">Partial Begins:</td><td><input onChange="hideOutput();" id="partial_begins" type="time" step="1"></td></tr>
+                <tr><td class="label">Full Begins:</td><td><input onChange="hideOutput();" id='full_begins' type="time" step="1"></td></tr>
+                <tr><td class="label">Full Ends:</td><td><input onChange="hideOutput();" id='full_ends' type="time" step="1"></td></tr>
+                <tr><td class="label">Partial Ends:</td><td><input onChange="hideOutput();" id="partial_ends" type="time" step="1"></td></tr>
+            </table></td><td>
+            <table class="params">
+                <th colspan="2" class="headerBlock">Intervals</th>
+                <tr><td class="label">Partial Eclipse Interval:</td><td>
+                    <select id='partialInterval' onChange="checkVisible('partial');">
+                        <option value="0">Disabled</option>
+                        <option value="30">every 30 seconds</option>
+                        <option value="60">every 1 minute</option>
+                        <option value="120">every 2 minutes</option>
+                        <option value="180">every 3 minutes</option>
+                        <option value="240">every 4 minutes</option>
+                        <option value="300" selected="selected">every 5 minutes</option>
+                        <option value="360">every 6 minutes</option>
+                        <option value="420">every 7 minutes</option>
+                        <option value="480">every 8 minutes</option>
+                        <option value="540">every 9 minutes</option>
+                        <option value="600">every 10 minute</option>
+                    </select>
+                </td></tr>
+                <tr><td class="label">Baily's Beads Capture Offset:</td><td>
+                    <select id='bailysInterval' onChange="checkVisible('bailys');">
+                        <option value="0">Disabled</option>
+                        <option value="6">+/- 6 seconds</option>
+                        <option value="8" selected="selected">+/- 8 seconds</option>
+                        <option value="10">+/- 10 seconds</option>
+                    </select>
+                </td></tr>
+                <tr><td class="label">Totality Interval:</td><td>As fast as possible.<input type="hidden" id="totalityInterval" value="1"/></td></tr>
+            </table></td><td>
+            <table class="params">
+                <th colspan="2" class="headerBlock">Camera Settings</th>
+                <tr><td class="label">Camera Gain:</td><td><input onChange="hideOutput();" type="number" id="gain" value="26" min="0"/></td></tr>
+                <tr><td class="label">Camera Offset:</td><td><input onChange="hideOutput();" type="number" id="offset" value="70" min="0"/></td></tr>
+                <tr><td class="label">Output Format:</td><td>
+                    <select id="output" onChange="hideOutput();">
+                        <option value="SER file (*.ser)">SER</option>
+                        <option value="PNG files (*.png)">PNG</option>
+                        <option value="FITS files (*.fits)">FITS</option>
+                        <option value="TIFF files (*.tif)">TIFF</option>
+                        <option value="ADV files (*.adv)">ADV</option>
+                    </select></td></tr>
+            </table>
+        </th></tr></table>
+        <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span></h3><b>NOTE:</b> The collection plan should take less than <span id="partialIntervalHTML">30 seconds</span> with your camera.<table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
+        <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every second for <span id="bailysPlanHeader"></span></h3><b>NOTE:</b> The collection plan should take less than 1 second with your camera.<table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
+        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: loop as fast as possible</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
+        <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
+
+        <div class="planDiv" id="sequenceDiv" style="display: none;">
+            <h3 class="headerBlock">Generated Sequence</h3>
+            <input type="button" value="Copy Sequence to Clipboard" id="clipboardButton" style="margin: 15px 15px 0 15px; max-width: 45%;" onClick="copyToClipboard();" /><input type="button" value="Download SharpCap Sequence" id="downloadButton" style="max-width: 45%;" onClick="downloadSequence();" />
+            <textarea id="SharpCapSequence" style="width: 98%; height: 200px;" readonly="readonly"
+            placeholder="SharpCap sequence will appear here."></textarea>
+        </div>
+    </div>
+    <script type="text/javascript">
+        function uuidv4() {
+            return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        function toggleInstructions() {
+            let i = document.getElementById('instructionsDiv');
+            let a = document.getElementById("instructionToggle");
+            if(a.innerHTML == "( Hide Instructions )" ) {
+                i.style.display = "none";
+                a.innerHTML = "( Show Instructions )";
+            } else {
+                i.style.display = "block";
+                a.innerHTML = "( Hide Instructions )";
+            }
+        }
+
+        function checkVisible(t) {
+            let e = document.getElementById(t+"Interval");
+            if(e.value==0) {
+                document.getElementById(t+"PlanDiv").style.display="none";
+            } else {
+                document.getElementById(t+"PlanDiv").style.display="block";
+                document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
+                document.getElementById("partialIntervalHTML").innerHTML = document.getElementById("partialInterval").options[document.getElementById("partialInterval").selectedIndex].innerHTML.replace("every ","");
+                if(document.getElementById(t+"Plan").rows.length==0)
+                    addPlanLine(t+"Plan");
+            }
+            hideOutput();
+        }
+
+        function hideOutput() {
+            document.getElementById("sequenceDiv").style.display = "none";
+        }
+
+        function checkIfLastStep(t) {
+            let tbl = document.getElementById(t);
+            if(tbl.rows.length==1)
+                tbl.rows[0].cells[3].style.display="none";
+            else
+                tbl.rows[0].cells[3].style.display="block";
+                hideOutput();
+        }
+
+        function addPlanLine(t) {
+            let rowID = uuidv4();
+            let tbl = document.getElementById(t);
+            let rows = tbl.rows.length;
+            let row = tbl.insertRow(tbl.rows.length);
+            var cells = [];
+            for(var i=0; i<4; i++)
+                cells.push(row.insertCell(i));
+            cells[0].innerHTML = "<input type='hidden' name='uuid' value='"+rowID+"' /><span name='step'>Step "+(rows+1).toString()+"</span>";
+            cells[0].style.fontWeight = "bold";
+            cells[0].style.textAlign = "center";
+            cells[1].innerHTML = "Capture <input type='number' id='"+rowID+"count' value='1' min='1'><select id='"+rowID+"type'><option value='frames' selected='selected'>frames</option><option value='seconds'>seconds</option></select>";
+            cells[2].innerHTML = "at Exposure: <input type='number' id='"+rowID+"exposure' value='0.01' min='0'> seconds";
+            cells[3].innerHTML = "<input type='button' value='Delete Step' onClick='removeRow(this)' />"
+            checkIfLastStep(t);
+        }
+
+        function removeRow(t) {
+            let p = t.parentNode.parentNode;
+            let tbl = document.getElementById(p.parentNode.parentNode.id);
+            if(tbl.rows.length==1) {
+                alert("Collection Plan needs at least one step.  Cannot delete the last step.");
+                return;
+            }
+            p.parentNode.removeChild(p);
+
+            for(var i=0;i<tbl.rows.length;i++) {
+                tbl.rows[0].cells[0].childNodes[1].innerHTML = "Step "+(i+1).toString();
+            }
+            checkIfLastStep(tbl.id);
+        }
+
+        function format02d(v) {
+            return(("00"+v.toString()).substr(-2))
+        }
+
+        function timeToSeconds(tm) {
+            let tp = tm.split(":");
+            var secs = parseInt(tp[2]);
+            secs += parseInt(tp[1])*60;
+            secs += parseInt(tp[0])*3600;
+            return secs;
+        }
+
+        function secondsToTime(secs) {
+            let h = Math.floor(secs/3600);
+            secs -= h*3600;
+            let m = Math.floor(secs/60);
+            secs -= m*60;
+            return(format02d(h)+":"+format02d(m)+":"+format02d(secs))
+        }
+
+        function generateSharpCap() {
+            var output = new Array();
+            var indent = 8;
+            output.push("SEQUENCE");
+            output.push(`    PRESERVE CAMERA SETTINGS`);
+            output.push("")
+
+            try {
+                ["partial_begins", "full_begins", "full_ends", "partial_ends"].forEach((t) => {
+                    if(document.getElementById(t).value=="") {
+                        alert("Sorry, please fill in the "+t.split("_").join(" ")+" timestamp");
+                        throw BreakException;
+                    }
+                });
+            } catch(e) {
+                return;
+            }
+
+            ["partial", "bailys", "totality"].forEach((p) => {
+                let e = document.getElementById(p+"Interval");
+                if(e.value!=0) {
+                    output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
+                    indent=12;
+                    let t = document.getElementById(p+"Plan");
+                    for( var row=0; row<t.rows.length; row++ ) {
+                        let rowID = t.rows[row].cells[0].childNodes[0].value;
+                        output.push(' '.repeat(indent)+"SET EXPOSURE TO "+document.getElementById(rowID+"exposure").value);
+                        if(document.getElementById(rowID+"type").value=="frames") {
+                            output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+" LIVE FRAMES")
+                        } else {
+                            output.push(' '.repeat(indent)+"CAPTURE START");
+                            output.push(' '.repeat(indent)+"DELAY "+document.getElementById(rowID+"count").value)
+                            output.push(' '.repeat(indent)+"CAPTURE STOP");
+                        }
+                    }
+                    indent=8;
+                    output.push(' '.repeat(indent)+"END SUB")
+                    output.push("")
+                }
+            });
+            let partialInterval = parseInt(document.getElementById("partialInterval").value);
+            let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
+            let totalityDuration = timeToSeconds(document.getElementById("full_ends").value) - timeToSeconds(document.getElementById("full_begins").value);
+            function addWaitSub(title,startTime,offsetTime) {
+                output.push(' '.repeat(indent)+"DEF SUB waitFor"+title)
+                indent=12;
+                let st = secondsToTime(timeToSeconds(startTime)+offsetTime);
+                output.push(' '.repeat(indent)+"WAIT UNTIL LOCALTIME "+st);
+                indent=8;
+                output.push(' '.repeat(indent)+"END SUB")
+                output.push("")
+            }
+
+            if(partialInterval>0) {
+                addWaitSub('PreEclipseStart',document.getElementById('partial_begins').value,-60);
+                addWaitSub('EclipseStart',document.getElementById('partial_begins').value,0);
+            }
+            if(bailysInterval>0) {
+                addWaitSub('BailysOneStart',document.getElementById('full_begins').value,bailysInterval*-1);
+            }
+            addWaitSub('TotalityStart',document.getElementById('full_begins').value,0);
+
+            if(bailysInterval>0) {
+                addWaitSub('BailysTwoEnd',document.getElementById('full_ends').value,bailysInterval);
+            }
+            if(partialInterval>0) {
+                addWaitSub('EclipseEnd',document.getElementById('partial_ends').value,0);
+                addWaitSub('PostEclipseEnd',document.getElementById('partial_ends').value,60);
+            }
+
+            output.push(' '.repeat(indent)+"LIVE MODE");
+            output.push(' '.repeat(indent)+"TARGETNAME Sun");
+            output.push(' '.repeat(indent)+"SET GAIN TO "+document.getElementById("gain").value);
+            output.push(' '.repeat(indent)+"SET OFFSET to "+document.getElementById("offset").value);
+            output.push(' '.repeat(indent)+'SET OUTPUT FORMAT TO "'+document.getElementById("output").value+'"');
+            output.push("")
+
+            if(partialInterval>0) {
+                output.push(' '.repeat(indent)+"GOSUB waitForPreEclipseStart");
+                output.push(' '.repeat(indent)+"GOSUB partialCollection");
+                output.push("")
+                output.push(' '.repeat(indent)+"GOSUB waitForEclipseStart");
+                output.push(' '.repeat(indent)+"PERIODIC partialEclipse EVERY "+partialInterval.toString());
+                indent=12;
+                output.push(' '.repeat(indent)+"GOSUB partialCollection");
+                indent=8;
+                output.push(' '.repeat(indent)+"END PERIODIC");
+                output.push("")
+                if(bailysInterval>0) {
+                    output.push(' '.repeat(indent)+"GOSUB waitForBailysOneStart");
+                } else {
+                    output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
+                }
+                output.push(' '.repeat(indent)+"PERIODIC partialEclipse STOP");
+                output.push("");
+            }
+            if(bailysInterval>0) {
+                output.push(' '.repeat(indent)+"PLAY SOUND Alert");
+                output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+(totalityDuration+bailysInterval).toString());
+                output.push(' '.repeat(indent)+"PERIODIC bailysBeads EVERY 1");
+                indent=12;
+                output.push(' '.repeat(indent)+"GOSUB bailysCollection");
+                indent=8;
+                output.push(' '.repeat(indent)+"END PERIODIC");
+                output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
+                output.push(' '.repeat(indent)+"PERIODIC bailysBeads STOP");
+                output.push("");
+            }
+            if(partialInterval==0 && bailysInterval==0) {
+                output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
+                output.push(' '.repeat(indent)+"PLAY SOUND Alert");
+                output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+totalityDuration.toString());
+            }
+            output.push(' '.repeat(indent)+"LOOP UNTIL LOCALTIME "+document.getElementById("full_ends").value);
+            indent=12;
+            output.push(' '.repeat(indent)+"GOSUB totalityCollection");
+            indent=8;
+            output.push(' '.repeat(indent)+"END LOOP");
+            output.push(' '.repeat(indent)+"PLAY SOUND Error");
+            output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
+            output.push("")
+
+            if(bailysInterval>0) {
+                output.push(' '.repeat(indent)+"PERIODIC bailysBeads EVERY 1");
+                indent=12;
+                output.push(' '.repeat(indent)+"GOSUB bailysCollection");
+                indent=8;
+                output.push(' '.repeat(indent)+"END PERIODIC");
+                output.push(' '.repeat(indent)+"GOSUB waitForBailysTwoEnd");
+                output.push(' '.repeat(indent)+"PERIODIC bailysBeads STOP");
+                output.push("");
+            }
+
+            if(partialInterval>0) {
+                output.push(' '.repeat(indent)+"PERIODIC partialEclipse EVERY "+partialInterval.toString());
+                indent=12;
+                output.push(' '.repeat(indent)+"GOSUB partialCollection");
+                indent=8;
+                output.push(' '.repeat(indent)+"END PERIODIC");
+                output.push(' '.repeat(indent)+"GOSUB waitForEclipseEnd");
+                output.push(' '.repeat(indent)+"PERIODIC partialEclipse STOP");
+                output.push("");
+
+                output.push(' '.repeat(indent)+"GOSUB waitForPostEclipseEnd");
+                output.push(' '.repeat(indent)+"GOSUB partialCollection");
+                output.push("");
+            }
+            output.push(' '.repeat(indent)+"PLAY SOUND Alert");
+            output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Solar Eclipse Collection is complete!" COLOUR Green DURATION 120');
+
+            output.push(`    END PRESERVE`)
+            output.push("END SEQUENCE")
+            document.getElementById("SharpCapSequence").value = output.join("\n");
+            document.getElementById("sequenceDiv").style.display = "block";
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(document.getElementById("SharpCapSequence").value);
+        }
+
+        function downloadSequence() {
+            var textToSave = document.getElementById("SharpCapSequence").value;
+            var textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
+            var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+            var fileNameToSaveAs = "SharpCap_Eclipse_Sequence.scs";
+
+            var downloadLink = document.createElement("a");
+            downloadLink.download = fileNameToSaveAs;
+            downloadLink.innerHTML = "Download File";
+            downloadLink.href = textToSaveAsURL;
+            downloadLink.onclick = destroyClickedElement;
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+
+            downloadLink.click();
+        }
+        function destroyClickedElement(event) {
+            document.body.removeChild(event.target);
+        }
+        checkVisible("partial");
+        checkVisible("bailys");
+        addPlanLine("totalityPlan");
+    </script>
+</body>
+ 
+</html>
