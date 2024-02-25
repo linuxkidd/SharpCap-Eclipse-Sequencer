@@ -67,7 +67,10 @@
         text-align: right;
         max-width: 80px;
     }
-
+    input[type="text"] {
+        text-align: right;
+        max-width: 100px;
+    }
     .wideButton {
         width: 100%;
     }
@@ -78,7 +81,12 @@
         <h1 style="color: blue;">
           SharpCap Eclipse Sequence Creator
         </h1>
-        <span style="font-weight: bold;">NOTE: Requires <a href="https://www.sharpcap.co.uk/" target="_blank">SharpCap Pro version 4.1</a> or newer.</span>
+        <span style="font-weight: bold;">Notes:</span>
+        <ul>
+            <li>Requires <a href="https://www.sharpcap.co.uk/" target="_blank">SharpCap Pro version 4.1</a> or newer.</li>
+            <li>Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output unique. I'm using {Exposure} in the filename to accomplish this.</li>
+            <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
+        </ul> 
         <a id="instructionToggle" href="javascript://" onClick="toggleInstructions();" style="margin-top: 15px; font-size: 0.8em;">( Hide Instructions )</a>
         <div id="instructionsDiv">
             <b>Instructions:</b>
@@ -86,7 +94,7 @@
                 <li>Go to <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Eclipse Map</a>.</li>
                 <li>Zoom into your observation location and click to place the pin on the map.</li>
                 <li>Note the Partial and Full Begin and End times provided on the left side of the map.</li>
-                <li>Enter the times under <i>Eclipse Times</i> below.</li>
+                <li>Enter the times under <i>Eclipse Times</i> below, in 24 hour, HH:MM:SS format.</li>
                 <li>Adjust the <i>Intervals</i> and <i>Cmera Settings</i> as desired below.</li>
                 <li>Add and adjust the steps for each <i>Collection Plan</i> section below.</li>
                 <li>Click the <i>Generate</i> button.</li>
@@ -97,16 +105,15 @@
                 <li>Pick the downloaded sequence file and click the <i>Open</i> button.</li>
                 <li>Monitor for an Alert sound, and banner at the top to Remove or Apply the Solar Filter around the time of Totality.</li>
             </ol>
-            <b>Note:</b> Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output unique.  I'm using {Exposure} in the filename to accomplish this.
         </div>
         <table id="wrapperTable"><tr style="vertical-align: top;"><td>
             <table class="params">
                 <tr><th colspan="2" class="headerBlock">Eclipse Times</th></tr>
 
-                <tr><td class="label">Partial Begins:</td><td><input onChange="hideOutput();" id="partial_begins" type="time" step="1"></td></tr>
-                <tr><td class="label">Full Begins:</td><td><input onChange="hideOutput();" id='full_begins' type="time" step="1"></td></tr>
-                <tr><td class="label">Full Ends:</td><td><input onChange="hideOutput();" id='full_ends' type="time" step="1"></td></tr>
-                <tr><td class="label">Partial Ends:</td><td><input onChange="hideOutput();" id="partial_ends" type="time" step="1"></td></tr>
+                <tr><td class="label">Partial Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_begins" type="text" step="1"></td></tr>
+                <tr><td class="label">Full Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_begins' type="text" step="1"></td></tr>
+                <tr><td class="label">Full Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_ends' type="text" step="1"></td></tr>
+                <tr><td class="label">Partial Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text" step="1"></td></tr>
             </table></td><td>
             <table class="params">
                 <th colspan="2" class="headerBlock">Intervals</th>
@@ -185,18 +192,39 @@
             let e = document.getElementById(t+"Interval");
             if(e.value==0) {
                 document.getElementById(t+"PlanDiv").style.display="none";
+                if(t=="partial") {
+                    document.getElementById("partial_begins").style.backgroundColor="#ccc";
+                    document.getElementById("partial_begins").readonly="readonly";
+                    document.getElementById("partial_ends").style.backgroundColor="#ccc";
+                    document.getElementById("partial_ends").readonly="readonly";
+                }
             } else {
                 document.getElementById(t+"PlanDiv").style.display="block";
                 document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
                 document.getElementById("partialIntervalHTML").innerHTML = document.getElementById("partialInterval").options[document.getElementById("partialInterval").selectedIndex].innerHTML.replace("every ","");
                 if(document.getElementById(t+"Plan").rows.length==0)
                     addPlanLine(t+"Plan");
+                if(t=="partial") {
+                    document.getElementById("partial_begins").removeAttribute('readonly');
+                    document.getElementById("partial_ends").removeAttribute('readonly');
+                    verifyTime(document.getElementById("partial_begins"));
+                    verifyTime(document.getElementById("partial_ends"));
+                }
             }
             hideOutput();
         }
 
         function hideOutput() {
             document.getElementById("sequenceDiv").style.display = "none";
+        }
+
+        function verifyTime(t) {
+            hideOutput();
+            let v=/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(t.value);
+            if(v)
+                t.style.backgroundColor="#bfa";
+            else
+                t.style.backgroundColor="#fba";
         }
 
         function checkIfLastStep(t) {
@@ -263,11 +291,24 @@
         function generateSharpCap() {
             var output = new Array();
             var indent = 0;
+            let partialInterval = parseInt(document.getElementById("partialInterval").value);
+            let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
+            let totalityDuration = timeToSeconds(document.getElementById("full_ends").value) - timeToSeconds(document.getElementById("full_begins").value);
 
             try {
-                ["partial_begins", "full_begins", "full_ends", "partial_ends"].forEach((t) => {
-                    if(document.getElementById(t).value=="") {
-                        alert("Sorry, please fill in the "+t.split("_").join(" ")+" timestamp");
+                if(partialInterval>0) {
+                    ["partial_begins", "partial_ends"].forEach((t) => {
+                        let v = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(document.getElementById(t).value);
+                        if(document.getElementById(t).value=="" || !v) {
+                            alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
+                            throw BreakException;
+                        }
+                    });
+                }
+                ["full_begins", "full_ends"].forEach((t) => {
+                    let v = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(document.getElementById(t).value);
+                    if(document.getElementById(t).value=="" || !v) {
+                        alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
                         throw BreakException;
                     }
                 });
@@ -297,19 +338,14 @@
                     output.push("")
                 }
             });
-            output.push("SEQUENCE");
-            output.push(`    PRESERVE CAMERA SETTINGS`);
-            output.push("")
-            indent=8;
-            let partialInterval = parseInt(document.getElementById("partialInterval").value);
-            let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
-            let totalityDuration = timeToSeconds(document.getElementById("full_ends").value) - timeToSeconds(document.getElementById("full_begins").value);
+
             function addWaitSub(title,startTime,offsetTime) {
+                indent=0;
                 output.push(' '.repeat(indent)+"DEF SUB waitFor"+title)
-                indent=12;
+                indent=4;
                 let st = secondsToTime(timeToSeconds(startTime)+offsetTime);
-                output.push(' '.repeat(indent)+"WAIT UNTIL LOCALTIME "+st);
-                indent=8;
+                output.push(' '.repeat(indent)+"WAIT UNTIL AFTER LOCALTIME "+st);
+                indent=0;
                 output.push(' '.repeat(indent)+"END SUB")
                 output.push("")
             }
@@ -330,6 +366,11 @@
                 addWaitSub('EclipseEnd',document.getElementById('partial_ends').value,0);
                 addWaitSub('PostEclipseEnd',document.getElementById('partial_ends').value,60);
             }
+
+            output.push("SEQUENCE");
+            output.push(`    PRESERVE CAMERA SETTINGS`);
+            output.push("")
+            indent=8;
 
             output.push(' '.repeat(indent)+"LIVE MODE");
             output.push(' '.repeat(indent)+"TARGETNAME Sun");
