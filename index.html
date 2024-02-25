@@ -25,6 +25,21 @@
         border-bottom: 1px solid blue;
     }
 
+    .goodInput {
+        border: 2px solid #0f0;
+        background: rgba(0,0,0,0);
+    }
+
+    .badInput {
+        border: 2px solid #f00;
+        background: rgba(0,0,0,0);
+    }
+
+    .disabledInput {
+        border: 1px solid #000;
+        background: rgba(0,0,0,0.3);
+    }
+
     div {
         display: flex;
         flex-direction: column;
@@ -193,9 +208,13 @@
             if(e.value==0) {
                 document.getElementById(t+"PlanDiv").style.display="none";
                 if(t=="partial") {
-                    document.getElementById("partial_begins").style.backgroundColor="#ccc";
+                    document.getElementById("partial_begins").classList.remove("goodInput");
+                    document.getElementById("partial_begins").classList.remove("badInput");
+                    document.getElementById("partial_begins").classList.add("disabledInput");
                     document.getElementById("partial_begins").readonly="readonly";
-                    document.getElementById("partial_ends").style.backgroundColor="#ccc";
+                    document.getElementById("partial_ends").classList.remove("goodInput");
+                    document.getElementById("partial_ends").classList.remove("badInput");
+                    document.getElementById("partial_ends").classList.add("disabledInput");
                     document.getElementById("partial_ends").readonly="readonly";
                 }
             } else {
@@ -221,10 +240,15 @@
         function verifyTime(t) {
             hideOutput();
             let v=/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(t.value);
-            if(v)
-                t.style.backgroundColor="#bfa";
-            else
-                t.style.backgroundColor="#fba";
+            if(v) {
+                t.classList.add("goodInput");
+                t.classList.remove("badInput");
+                t.classList.remove("disabledInput");
+            } else {
+                t.classList.remove("goodInput");
+                t.classList.add("badInput");
+                t.classList.remove("disabledInput");
+            }
         }
 
         function checkIfLastStep(t) {
@@ -484,6 +508,7 @@
         checkVisible("partial");
         checkVisible("bailys");
         addPlanLine("totalityPlan");
+        ["partial_begins","full_begins","full_ends","partial_ends"].forEach((t) => verifyTime(document.getElementById(t)));
     </script>
 </body>
  
