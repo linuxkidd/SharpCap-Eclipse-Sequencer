@@ -352,9 +352,7 @@
                         if(document.getElementById(rowID+"type").value=="frames") {
                             output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+" LIVE FRAMES")
                         } else {
-                            output.push(' '.repeat(indent)+"CAPTURE START");
-                            output.push(' '.repeat(indent)+"DELAY "+document.getElementById(rowID+"count").value)
-                            output.push(' '.repeat(indent)+"CAPTURE STOP");
+                            output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+" SECONDS LIVE FRAMES")
                         }
                     }
                     indent=0;
