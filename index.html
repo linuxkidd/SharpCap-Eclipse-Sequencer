@@ -349,11 +349,10 @@
                     for( var row=0; row<t.rows.length; row++ ) {
                         let rowID = t.rows[row].cells[0].childNodes[0].value;
                         output.push(' '.repeat(indent)+"SET EXPOSURE TO "+document.getElementById(rowID+"exposure").value);
-                        if(document.getElementById(rowID+"type").value=="frames") {
-                            output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+" LIVE FRAMES")
-                        } else {
-                            output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+" SECONDS LIVE FRAMES")
-                        }
+                        var secVerb = "";
+                        if(document.getElementById(rowID+"type").value=="seconds")
+                            secVerb = " SECONDS ";
+                        output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES")
                     }
                     indent=0;
                     output.push(' '.repeat(indent)+"END SUB")
