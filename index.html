@@ -318,7 +318,7 @@
         }
 
         function generateSharpCap() {
-            var output = new Array();
+            var output = new Array("# Generated at: "+window.location.href);
             var indent = 0;
             let partialInterval = parseInt(document.getElementById("partialInterval").value);
             let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
