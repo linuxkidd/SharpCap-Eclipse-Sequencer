@@ -98,10 +98,9 @@
         </h1>
         <span style="font-weight: bold;">Notes:</span>
         <ul>
-            <li><b>Requires a yet to be released version of <a href="https://www.sharpcap.co.uk/" target="_blank">SharpCap Pro</a></b>.</li>
-            <li>The upcoming release is expected to add the <a href="https://forums.sharpcap.co.uk/viewtopic.php?p=41310#p41310" target="_blank">PAD DURATION</a> instruction.  Until that release, the generated sequence will not function.</li>
-            <li>This page will be updated once that release is available.</li>
-            <li>Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output unique. I'm using {Exposure} in the filename to accomplish this.</li>
+            <li><b>Requires a <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">preview release version</a> of SharpCap Pro</b>.</li>
+            <li>The preview release adds the <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">PAD DURATION</a> instruction..</li>
+            <li>Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output more unique. I'm using {Exposure} in the filename to accomplish this.</li>
             <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
         </ul> 
         <a id="instructionToggle" href="javascript://" onClick="toggleInstructions();" style="margin-top: 15px; font-size: 0.8em;">( Hide Instructions )</a>
@@ -403,6 +402,7 @@
                 return;
             }
 
+            var lastExposure=0;
             ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((p) => {
                 let e = document.getElementById(p);
                 if(e.value!=0) {
@@ -416,7 +416,10 @@
                         var secVerb = "";
                         if(document.getElementById(rowID+"type").value=="seconds")
                             secVerb = " SECONDS ";
-                        output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES")
+                        if(rows>0)
+                            output.push(' '.repeat(indent)+"DELAY "+(lastExposure * 5).toString());
+                        output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
+
                     }
                     indent=0;
                     output.push(' '.repeat(indent)+"END SUB")
