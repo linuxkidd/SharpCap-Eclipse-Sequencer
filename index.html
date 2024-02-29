@@ -566,6 +566,7 @@
             output.push("END SEQUENCE");
             document.getElementById("SharpCapSequence").value = output.join("\n");
             document.getElementById("sequenceDiv").style.display = "block";
+            window.scrollTo(0, document.body.scrollHeight);
         }
 
         function copyToClipboard() {
