@@ -18,6 +18,10 @@
         margin: auto;
     }
 
+    #tipsDiv, #instructionsDiv {
+        display: none;
+    }
+
     .headerBlock {
         background-color: lightskyblue;
         margin: 0;
@@ -96,14 +100,26 @@
         <h1 style="color: blue;">
           SharpCap Eclipse Sequence Creator
         </h1>
-        <span style="font-weight: bold;">Notes:</span>
-        <ul>
-            <li><b>Requires <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">preview release version 4.1.11890</a> or newer of SharpCap Pro</b>.
-            The preview release adds the <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">PAD DURATION</a> instruction..</li>
-            <li>Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output more unique. I'm using {Exposure} in the filename to accomplish this.</li>
-            <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
-        </ul> 
-        <a id="instructionToggle" href="javascript://" onClick="toggleInstructions();" style="margin-top: 15px; font-size: 0.8em;">( Hide Instructions )</a>
+        <a id="notesToggle" href="javascript://" onClick="toggleDiv('notes');" style="margin: 15px;">( Hide Notes )</a>
+        <div id="notesDiv">
+            <span style="font-weight: bold;">Notes:</span>
+            <ul>
+                <li><b>Requires <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">preview release version 4.1.11890</a> or newer of SharpCap Pro</b>.
+                The preview release adds the <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">PAD DURATION</a> instruction..</li>
+                <li>Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output more unique. I'm using {Exposure} in the filename to accomplish this.</li>
+                <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
+            </ul>
+        </div>
+        <a id="tipsToggle" href="javascript://" onClick="toggleDiv('tips');" style="margin: 15px;">( Show Tips )</a>
+        <div id="tipsDiv">
+            <b>Tips:</b>
+            <ul style="margin-top: 3px;">
+                <li>If you'd like to get a head start to tweak your action plan in the future, copy the URL - the top parameters are encoded there and will be re-populated if you use it in the future.</li>
+                <li>The parameter encoded URL is put as a comment in the top of the generated sequence file, so you can use that for future collection plan tweaks.</li>
+                <li>If you'd like to capture the Baily's Beads Collection Plan into totality, you can do so by fudging the 'Full Begins' and/or 'Full Ends' times to be after totality begins/before totality ends.</li>
+            </ul>
+        </div>
+        <a id="instructionsToggle" href="javascript://" onClick="toggleDiv('instructions');" style="margin: 15px;">( Show Instructions )</a>
         <div id="instructionsDiv">
             <b>Instructions:</b>
             <ol style="margin-top: 3px;">
@@ -144,6 +160,9 @@
                             <option value="5">5 times</option>
                             <option value="10" selected="selected">10 times</option>
                             <option value="20">20 times</option>
+                            <option value="40">40 times</option>
+                            <option value="50">50 times</option>
+                            <option value="100">100 times</option>
                         </select> before and after
                     </td></tr>
                     <tr><td class="label">Partial Eclipse Interval:</td><td>
@@ -170,6 +189,8 @@
                             <option value="10">+/- 10 seconds</option>
                             <option value="20">+/- 20 seconds</option>
                             <option value="30">+/- 30 seconds</option>
+                            <option value="45">+/- 45 seconds</option>
+                            <option value="60">+/- 60 seconds</option>
                         </select>
                     </td></tr>
                     <tr><td class="label">Totality Interval:</td><td>at most, every 1 second<input type='hidden' id='totalityInterval' value='1'/></td></tr>
@@ -208,15 +229,19 @@
             );
         }
 
-        function toggleInstructions() {
-            let i = document.getElementById('instructionsDiv');
-            let a = document.getElementById("instructionToggle");
-            if(a.innerHTML == "( Hide Instructions )" ) {
+        function ucFirst(word) {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }
+
+        function toggleDiv(t) {
+            let i = document.getElementById(t+'Div');
+            let a = document.getElementById(t+'Toggle');
+            if(a.innerHTML == "( Hide "+ucFirst(t)+" )" ) {
                 i.style.display = "none";
-                a.innerHTML = "( Show Instructions )";
+                a.innerHTML = "( Show "+ucFirst(t)+" )";
             } else {
                 i.style.display = "block";
-                a.innerHTML = "( Hide Instructions )";
+                a.innerHTML = "( Hide "+ucFirst(t)+" )";
             }
             updateURL();
         }
