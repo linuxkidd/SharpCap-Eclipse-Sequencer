@@ -14,7 +14,7 @@
     }
 
     #bodyWrapper {
-        max-width: 800px;
+        max-width: 1000px;
         margin: auto;
     }
 
@@ -60,7 +60,7 @@
     .planDiv {
         border: 1px solid;
         margin: 10px auto;
-        min-width: 800px;
+        min-width: 1000px;
         text-align: left;
     }
 
@@ -112,7 +112,12 @@
                 <li>Zoom into your observation location and click to place the pin on the map.</li>
                 <li>Note the Partial and Full Begin and End times provided on the left side of the map.</li>
                 <li>Enter the times under <i>Eclipse Times</i> below, in 24 hour, HH:MM:SS format.</li>
-                <li>Adjust the <i>Intervals</i> and <i>Cmera Settings</i> as desired below.</li>
+                <li>Adjust the <i>Intervals</i> and <i>Cmera Settings</i> as desired below.<br />
+                    <b>Notes:</b><br />
+                    <i>Partial Eclipse Count</i> generates evenly spaced shots based on partial eclipse percentage, starting 2 minutes into the eclipse. <b>(recommended)</b><br />
+                    <i>Partial Eclipse Interval</i> generates evenly space shots based on time.<br />
+                    <i>The two cannot be used at the same time.</i>
+                </li>
                 <li>Add and adjust the steps for each <i>Collection Plan</i> section below.</li>
                 <li>Click the <i>Generate</i> button.</li>
                 <li>A <i>Generated Sequence</i> section will appear below.</li>
@@ -132,34 +137,45 @@
                 <tr><td class="label">Full Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_ends' type="text" step="1"></td></tr>
                 <tr><td class="label">Partial Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text" step="1"></td></tr>
             </table></td><td>
-            <table class="params">
-                <th colspan="2" class="headerBlock">Intervals</th>
-                <tr><td class="label">Partial Eclipse Interval:</td><td>
-                    <select id='partialInterval' onChange="checkVisible('partial');">
-                        <option value="0">Disabled</option>
-                        <option value="30">every 30 seconds</option>
-                        <option value="60">every 1 minute</option>
-                        <option value="120">every 2 minutes</option>
-                        <option value="180">every 3 minutes</option>
-                        <option value="240">every 4 minutes</option>
-                        <option value="300" selected="selected">every 5 minutes</option>
-                        <option value="360">every 6 minutes</option>
-                        <option value="420">every 7 minutes</option>
-                        <option value="480">every 8 minutes</option>
-                        <option value="540">every 9 minutes</option>
-                        <option value="600">every 10 minute</option>
-                    </select>
-                </td></tr>
-                <tr><td class="label">Baily's Beads Capture Offset:</td><td>
-                    <select id='bailysInterval' onChange="checkVisible('bailys');">
-                        <option value="0">Disabled</option>
-                        <option value="6">+/- 6 seconds</option>
-                        <option value="8" selected="selected">+/- 8 seconds</option>
-                        <option value="10">+/- 10 seconds</option>
-                    </select>
-                </td></tr>
-                <tr><td class="label">Totality Interval:</td><td>As fast as possible.<input type="hidden" id="totalityInterval" value="1"/></td></tr>
-            </table></td><td>
+                <table class="params" id="phaseInterval">
+                    <th colspan="2" class="headerBlock">Interval</th>
+                    <tr><td class="label">Partial Eclipse Count:</td><td>
+                        <select id='partialCount' onChange="checkVisible('partialCount');">
+                            <option value="0">Disabled</option>
+                            <option value="5">5 times</option>
+                            <option value="10" selected="selected">10 times</option>
+                            <option value="20">20 times</option>
+                        </select> before and after
+                    </td></tr>
+                    <tr><td class="label">Partial Eclipse Interval:</td><td>
+                        <select id='partialInterval' onChange="checkVisible('partialInterval');">
+                            <option value="0">Disabled</option>
+                            <option value="30">every 30 seconds</option>
+                            <option value="60">every 1 minute</option>
+                            <option value="120">every 2 minutes</option>
+                            <option value="180">every 3 minutes</option>
+                            <option value="240">every 4 minutes</option>
+                            <option value="300">every 5 minutes</option>
+                            <option value="360">every 6 minutes</option>
+                            <option value="420">every 7 minutes</option>
+                            <option value="480">every 8 minutes</option>
+                            <option value="540">every 9 minutes</option>
+                            <option value="600">every 10 minute</option>
+                        </select>
+                    </td></tr>
+                    <tr><td class="label">Baily's Beads Capture Offset:</td><td>
+                        <select id='bailysInterval' onChange="checkVisible('bailysInterval');">
+                            <option value="0">Disabled</option>
+                            <option value="6">+/- 6 seconds</option>
+                            <option value="8" selected="selected">+/- 8 seconds</option>
+                            <option value="10">+/- 10 seconds</option>
+                            <option value="20">+/- 20 seconds</option>
+                            <option value="30">+/- 30 seconds</option>
+                        </select>
+                    </td></tr>
+                    <tr><td class="label">Totality Interval:</td><td>at most, every 1 second<input type='hidden' id='totalityInterval' value='1'/></td></tr>
+                </table>
+            </td><td>
             <table class="params">
                 <th colspan="2" class="headerBlock">Camera Settings</th>
                 <tr><td class="label">Camera Gain:</td><td><input onChange="hideOutput();" type="number" id="gain" value="26" min="0"/></td></tr>
@@ -176,7 +192,7 @@
         </th></tr></table>
         <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span></h3><b>NOTE:</b> The collection plan should take less than <span id="partialIntervalHTML">30 seconds</span> with your camera.<table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
         <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every second for <span id="bailysPlanHeader"></span></h3><b>NOTE:</b> The collection plan should take less than 1 second with your camera.<table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
-        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: loop as fast as possible</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
+        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: At most, every 1 second</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
         <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
 
         <div class="planDiv" id="sequenceDiv" style="display: none;">
@@ -207,31 +223,62 @@
         }
 
         function checkVisible(t) {
-            let e = document.getElementById(t+"Interval");
-            if(e.value==0) {
-                document.getElementById(t+"PlanDiv").style.display="none";
-                if(t=="partial") {
-                    document.getElementById("partial_begins").classList.remove("goodInput");
-                    document.getElementById("partial_begins").classList.remove("badInput");
-                    document.getElementById("partial_begins").classList.add("disabledInput");
-                    document.getElementById("partial_begins").readonly="readonly";
-                    document.getElementById("partial_ends").classList.remove("goodInput");
-                    document.getElementById("partial_ends").classList.remove("badInput");
-                    document.getElementById("partial_ends").classList.add("disabledInput");
-                    document.getElementById("partial_ends").readonly="readonly";
+            let pmap = { "partialCount": "partialInterval", "partialInterval": "partialCount" };
+            let e = document.getElementById(t);
+            t = t.replace(/[A-Z].*$/,"");
+            try {
+                if(e.value==0) {
+                    if(t.match("partial")) {
+                        let pi=document.getElementById("partialInterval").value;
+                        let pc=document.getElementById("partialCount").value;
+                        if(pi==0 && pc==0) {
+                            document.getElementById(t+"PlanDiv").style.display="none";
+                            document.getElementById("partial_begins").classList.remove("goodInput");
+                            document.getElementById("partial_begins").classList.remove("badInput");
+                            document.getElementById("partial_begins").classList.add("disabledInput");
+                            document.getElementById("partial_begins").readonly="readonly";
+                            document.getElementById("partial_ends").classList.remove("goodInput");
+                            document.getElementById("partial_ends").classList.remove("badInput");
+                            document.getElementById("partial_ends").classList.add("disabledInput");
+                            document.getElementById("partial_ends").readonly="readonly";
+                        } else {
+                            document.getElementById(t+"PlanDiv").style.display="block";
+                            var phPost = "";
+                            if(pc>0)
+                                phPost = " before and after totality";
+                            document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML + phPost;
+                            document.getElementById("partialIntervalHTML").innerHTML = document.getElementById("partialInterval").options[document.getElementById("partialInterval").selectedIndex].innerHTML.replace("every ","");
+                            if(document.getElementById(t+"Plan").rows.length==0)
+                                addPlanLine(t+"Plan");
+                            document.getElementById("partial_begins").removeAttribute('readonly');
+                            document.getElementById("partial_ends").removeAttribute('readonly');
+                            verifyTime(document.getElementById("partial_begins"));
+                            verifyTime(document.getElementById("partial_ends"));
+                        }
+                    } else {
+                        document.getElementById(t+"PlanDiv").style.display="none";
+                    }
+                } else {
+                    var phPost = "";
+                    if(t.match("partial")) {
+                        document.getElementById(pmap[e.id]).value = 0;
+                        if(document.getElementById("partialCount").value>0)
+                            phPost = " before and after totality";
+                    }
+                    document.getElementById(t+"PlanDiv").style.display="block";
+                    document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML + phPost;
+                    document.getElementById("partialIntervalHTML").innerHTML = document.getElementById("partialInterval").options[document.getElementById("partialInterval").selectedIndex].innerHTML.replace("every ","");
+                    if(document.getElementById(t+"Plan").rows.length==0)
+                        addPlanLine(t+"Plan");
+                    if(t=="partial") {
+                        document.getElementById("partial_begins").removeAttribute('readonly');
+                        document.getElementById("partial_ends").removeAttribute('readonly');
+                        verifyTime(document.getElementById("partial_begins"));
+                        verifyTime(document.getElementById("partial_ends"));
+                    }
                 }
-            } else {
-                document.getElementById(t+"PlanDiv").style.display="block";
-                document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
-                document.getElementById("partialIntervalHTML").innerHTML = document.getElementById("partialInterval").options[document.getElementById("partialInterval").selectedIndex].innerHTML.replace("every ","");
-                if(document.getElementById(t+"Plan").rows.length==0)
-                    addPlanLine(t+"Plan");
-                if(t=="partial") {
-                    document.getElementById("partial_begins").removeAttribute('readonly');
-                    document.getElementById("partial_ends").removeAttribute('readonly');
-                    verifyTime(document.getElementById("partial_begins"));
-                    verifyTime(document.getElementById("partial_ends"));
-                }
+            } catch(err) {
+                console.log("Err: "+t);
             }
             hideOutput();
         }
@@ -321,11 +368,22 @@
             var output = new Array("# Generated at: "+window.location.href);
             var indent = 0;
             let partialInterval = parseInt(document.getElementById("partialInterval").value);
+            let partialCount = parseInt(document.getElementById("partialCount").value);
             let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
             let totalityDuration = timeToSeconds(document.getElementById("full_ends").value) - timeToSeconds(document.getElementById("full_begins").value);
+            var preInterval = partialInterval;
+            var postInterval = partialInterval;
+            if(partialCount>0) {
+                let preDuration = timeToSeconds(document.getElementById("full_begins").value) - timeToSeconds(document.getElementById("partial_begins").value) - bailysInterval - 120;
+                let postDuration = timeToSeconds(document.getElementById("partial_ends").value) - timeToSeconds(document.getElementById("full_ends").value) - bailysInterval - 120;
+                preInterval = preDuration / partialCount;
+                postInterval = postDuration / partialCount;
+            }
+            // preInterval = (preInterval/10).toPrecision(1)*10;
+            // postInterval = (postInterval/10).toPrecision(1)*10;
 
             try {
-                if(partialInterval>0) {
+                if(partialInterval>0 || partialCount>0) {
                     ["partial_begins", "partial_ends"].forEach((t) => {
                         let v = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(document.getElementById(t).value);
                         if(document.getElementById(t).value=="" || !v) {
@@ -345,9 +403,10 @@
                 return;
             }
 
-            ["partial", "bailys", "totality"].forEach((p) => {
-                let e = document.getElementById(p+"Interval");
+            ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((p) => {
+                let e = document.getElementById(p);
                 if(e.value!=0) {
+                    p = p.replace(/[A-Z].*$/,"");
                     output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
                     indent=4;
                     let t = document.getElementById(p+"Plan");
@@ -370,15 +429,18 @@
                 output.push(' '.repeat(indent)+"DEF SUB waitFor"+title)
                 indent=4;
                 let st = secondsToTime(timeToSeconds(startTime)+offsetTime);
-                output.push(' '.repeat(indent)+"WAIT UNTIL AFTER LOCALTIME "+st);
+                output.push(' '.repeat(indent)+"WAIT UNTIL LATER THAN LOCALTIME "+st);
                 indent=0;
                 output.push(' '.repeat(indent)+"END SUB")
                 output.push("");
             }
 
-            if(partialInterval>0) {
+            var esOffset=0;
+            if(partialInterval>0 || partialCount>0 ) {
                 addWaitSub('PreEclipseStart',document.getElementById('partial_begins').value,-60);
-                addWaitSub('EclipseStart',document.getElementById('partial_begins').value,0);
+                if(partialCount > 0)
+                    esOffset=120;
+                addWaitSub('EclipseStart',document.getElementById('partial_begins').value,esOffset);
             }
             if(bailysInterval>0) {
                 addWaitSub('BailysOneStart',document.getElementById('full_begins').value,bailysInterval*-1);
@@ -388,8 +450,10 @@
             if(bailysInterval>0) {
                 addWaitSub('BailysTwoEnd',document.getElementById('full_ends').value,bailysInterval);
             }
-            if(partialInterval>0) {
-                addWaitSub('EclipseEnd',document.getElementById('partial_ends').value,0);
+            if(partialInterval>0 || partialCount>0) {
+                if(partialCount > 0)
+                    esOffset=-120;
+                addWaitSub('EclipseEnd',document.getElementById('partial_ends').value,esOffset);
                 addWaitSub('PostEclipseEnd',document.getElementById('partial_ends').value,60);
             }
 
@@ -407,7 +471,7 @@
             output.push(' '.repeat(indent)+'SET OUTPUT FORMAT TO "'+document.getElementById("output").value+'"');
             output.push("");
 
-            if(partialInterval>0) {
+            if(partialInterval>0 || partialCount>0) {
                 output.push(' '.repeat(indent)+"GOSUB waitForPreEclipseStart");
                 output.push(' '.repeat(indent)+"GOSUB partialCollection");
                 output.push("")
@@ -415,7 +479,7 @@
                 var st = secondsToTime(timeToSeconds(document.getElementById('full_begins').value)-bailysInterval);
                 output.push(' '.repeat(indent)+"LOOP UNTIL AFTER LOCALTIME "+st);
                 indent+=4;
-                output.push(' '.repeat(indent)+"PAD DURATION TO "+partialInterval.toString());
+                output.push(' '.repeat(indent)+"PAD DURATION TO "+preInterval.toString());
                 indent+=4;
                 output.push(' '.repeat(indent)+"GOSUB partialCollection");
                 indent-=4;
@@ -440,7 +504,7 @@
                 output.push(' '.repeat(indent)+"END LOOP");
                 output.push("");
             }
-            if(partialInterval==0 && bailysInterval==0) {
+            if(partialInterval==0 && partialCount==0 && bailysInterval==0) {
                 output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+totalityDuration.toString());
@@ -448,7 +512,11 @@
             output.push(' '.repeat(indent)+'TARGETNAME "FullEclipse"');
             output.push(' '.repeat(indent)+"LOOP UNTIL LOCALTIME "+document.getElementById("full_ends").value);
             indent+=4;
+            output.push(' '.repeat(indent)+"PAD DURATION TO 1");
+            indent+=4;
             output.push(' '.repeat(indent)+"GOSUB totalityCollection");
+            indent-=4;
+            output.push(' '.repeat(indent)+"END PAD DURATION");
             indent-=4;
             output.push(' '.repeat(indent)+"END LOOP");
             output.push(' '.repeat(indent)+"PLAY SOUND Error");
@@ -470,11 +538,11 @@
                 output.push("");
             }
 
-            if(partialInterval>0) {
+            if(partialInterval>0 || partialCount>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "PartialPostEclipse"');
                 output.push(' '.repeat(indent)+"LOOP UNTIL AFTER LOCALTIME "+document.getElementById('partial_ends').value);
                 indent+=4;
-                output.push(' '.repeat(indent)+"PAD DURATION TO "+partialInterval.toString());
+                output.push(' '.repeat(indent)+"PAD DURATION TO "+postInterval.toString());
                 indent+=4;
                 output.push(' '.repeat(indent)+"GOSUB partialCollection");
                 indent-=4;
@@ -538,14 +606,15 @@
 
         function updateURL() {
             var params = [];
-            ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval","gain","offset","output"].forEach((a) => {
+            ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output"].forEach((a) => {
                 params.push(a+"="+document.getElementById(a).value);
             });
             window.location.hash=params.join(";");
         }
         readURL();
-        checkVisible("partial");
-        checkVisible("bailys");
+        checkVisible("partialInterval");
+        checkVisible("partialCount");
+        checkVisible("bailysInterval");
         addPlanLine("totalityPlan");
         ["partial_begins","full_begins","full_ends","partial_ends"].forEach((t) => verifyTime(document.getElementById(t)));
     </script>
