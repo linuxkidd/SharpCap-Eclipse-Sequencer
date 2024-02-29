@@ -420,7 +420,6 @@
                             output.push(' '.repeat(indent)+"DELAY "+(lastExposure * 5).toString());
                         output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
                         lastExposure = document.getElementById(rowID+"exposure").value;
-
                     }
                     indent=0;
                     output.push(' '.repeat(indent)+"END SUB")
