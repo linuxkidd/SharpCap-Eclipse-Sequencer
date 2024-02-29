@@ -415,7 +415,7 @@
                         var secVerb = "";
                         if(document.getElementById(rowID+"type").value=="seconds")
                             secVerb = " SECONDS ";
-                        if(rows>0)
+                        if(row>0)
                             output.push(' '.repeat(indent)+"DELAY "+(document.getElementById(rowID+"exposure").value * 5).toString());
                         output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
                     }
