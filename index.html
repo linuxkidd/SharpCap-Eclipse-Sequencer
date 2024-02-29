@@ -402,7 +402,6 @@
                 return;
             }
 
-            var lastExposure=0;
             ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((p) => {
                 let e = document.getElementById(p);
                 if(e.value!=0) {
@@ -417,9 +416,8 @@
                         if(document.getElementById(rowID+"type").value=="seconds")
                             secVerb = " SECONDS ";
                         if(rows>0)
-                            output.push(' '.repeat(indent)+"DELAY "+(lastExposure * 5).toString());
+                            output.push(' '.repeat(indent)+"DELAY "+(document.getElementById(rowID+"exposure").value * 5).toString());
                         output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
-                        lastExposure = document.getElementById(rowID+"exposure").value;
                     }
                     indent=0;
                     output.push(' '.repeat(indent)+"END SUB")
