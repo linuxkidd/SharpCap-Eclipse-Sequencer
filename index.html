@@ -84,7 +84,7 @@
 
     input[type="number"] {
         text-align: right;
-        max-width: 80px;
+        max-width: 60px;
     }
     input[type="text"] {
         text-align: right;
@@ -148,10 +148,10 @@
             <table class="params">
                 <tr><th colspan="2" class="headerBlock">Eclipse Times</th></tr>
 
-                <tr><td class="label">Partial Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_begins" type="text" step="1"></td></tr>
-                <tr><td class="label">Full Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_begins' type="text" step="1"></td></tr>
-                <tr><td class="label">Full Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_ends' type="text" step="1"></td></tr>
-                <tr><td class="label">Partial Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text" step="1"></td></tr>
+                <tr><td class="label">Partial Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_begins" type="text"></td></tr>
+                <tr><td class="label">Full Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_begins' type="text"></td></tr>
+                <tr><td class="label">Full Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_ends' type="text"></td></tr>
+                <tr><td class="label">Partial Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text"></td></tr>
             </table></td><td>
                 <table class="params" id="phaseInterval">
                     <th colspan="2" class="headerBlock">Interval</th>
@@ -331,9 +331,9 @@
         function checkIfLastStep(t) {
             let tbl = document.getElementById(t);
             if(tbl.rows.length==1)
-                tbl.rows[0].cells[3].style.display="none";
+                tbl.rows[0].cells[4].style.display="none";
             else
-                tbl.rows[0].cells[3].style.display="block";
+                tbl.rows[0].cells[4].style.display="block";
                 hideOutput();
         }
 
@@ -343,14 +343,15 @@
             let rows = tbl.rows.length;
             let row = tbl.insertRow(tbl.rows.length);
             var cells = [];
-            for(var i=0; i<4; i++)
+            for(var i=0; i<5; i++)
                 cells.push(row.insertCell(i));
             cells[0].innerHTML = "<input type='hidden' name='uuid' value='"+rowID+"' /><span name='step'>Step "+(rows+1).toString()+"</span>";
             cells[0].style.fontWeight = "bold";
             cells[0].style.textAlign = "center";
-            cells[1].innerHTML = "Capture <input type='number' id='"+rowID+"count' value='1' min='1'><select id='"+rowID+"type'><option value='frames' selected='selected'>frames</option><option value='seconds'>seconds</option></select>";
-            cells[2].innerHTML = "at Exposure: <input type='number' id='"+rowID+"exposure' value='0.01' min='0'> seconds";
-            cells[3].innerHTML = "<input type='button' value='Delete Step' onClick='removeRow(this)' />"
+            cells[1].innerHTML = "Capture <input type='number' id='"+rowID+"count' value='1' min='1' /><select id='"+rowID+"type'><option value='frames' selected='selected'>frames</option><option value='seconds'>seconds</option></select>";
+            cells[2].innerHTML = "at Exposure: <input type='number' id='"+rowID+"exposure' value='0.01' min='0' /> sec";
+            cells[3].innerHTML = "at Resolution: <input type='text' id='"+rowID+"resolution' value='' /> pixels (blank = no change)";
+            cells[4].innerHTML = "<input type='button' value='Delete Step' onClick='removeRow(this)' />"
             checkIfLastStep(t);
         }
 
@@ -433,9 +434,12 @@
                     output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
                     indent=4;
                     let t = document.getElementById(p+"Plan");
+                    var lastRes = "";
                     for( var row=0; row<t.rows.length; row++ ) {
                         let rowID = t.rows[row].cells[0].childNodes[0].value;
                         output.push(' '.repeat(indent)+"SET EXPOSURE TO "+document.getElementById(rowID+"exposure").value);
+                        if(document.getElementById(rowID+"resolution").value!="" && document.getElementById(rowID+"resolution").value!=lastRes)
+                            output.push(' '.repeat(indent)+"SET RESOLUTION TO "+document.getElementById(rowID+"resolution").value);
                         var secVerb = "";
                         if(document.getElementById(rowID+"type").value=="seconds")
                             secVerb = " SECONDS ";
@@ -444,6 +448,7 @@
                             output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
                         }
                         output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
+                        lastRes=document.getElementById(rowID+"resolution").value;
                     }
                     indent=0;
                     output.push(' '.repeat(indent)+"END SUB")
