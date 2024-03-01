@@ -501,7 +501,7 @@
                 output.push("")
                 output.push(' '.repeat(indent)+"GOSUB waitForEclipseStart");
                 var st = secondsToTime(timeToSeconds(document.getElementById('full_begins').value)-bailysInterval);
-                output.push(' '.repeat(indent)+"LOOP UNTIL AFTER LOCALTIME "+st);
+                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+st);
                 indent+=4;
                 output.push(' '.repeat(indent)+"PAD DURATION TO "+preInterval.toString());
                 indent+=4;
@@ -517,7 +517,7 @@
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+(totalityDuration+bailysInterval).toString());
 
-                output.push(' '.repeat(indent)+"LOOP UNTIL AFTER LOCALTIME "+document.getElementById('full_begins').value);
+                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+document.getElementById('full_begins').value);
                 indent+=4;
                 output.push(' '.repeat(indent)+"PAD DURATION TO 1");
                 indent+=4;
@@ -550,7 +550,7 @@
             if(bailysInterval>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPostEclipse"');
                 var st = secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval);
-                output.push(' '.repeat(indent)+"LOOP UNTIL AFTER LOCALTIME "+st);
+                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+st);
                 indent+=4;
                 output.push(' '.repeat(indent)+"PAD DURATION TO 1");
                 indent+=4;
@@ -564,7 +564,7 @@
 
             if(partialInterval>0 || partialCount>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "PartialPostEclipse"');
-                output.push(' '.repeat(indent)+"LOOP UNTIL AFTER LOCALTIME "+document.getElementById('partial_ends').value);
+                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+document.getElementById('partial_ends').value);
                 indent+=4;
                 output.push(' '.repeat(indent)+"PAD DURATION TO "+postInterval.toString());
                 indent+=4;
