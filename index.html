@@ -104,8 +104,7 @@
         <div id="notesDiv">
             <span style="font-weight: bold;">Notes:</span>
             <ul>
-                <li><b>Requires <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">preview release version 4.1.11890</a> or newer of SharpCap Pro</b>.
-                The preview release adds the <a href="https://forums.sharpcap.co.uk/viewtopic.php?t=7470" target="_blank">PAD DURATION</a> instruction..</li>
+                <li><b>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11922.0 or newer!</b>.</li>
                 <li>Times should be entered in local time of your observing site - REMEMBER - Times will shift 1 hour for most due to the upcoming Daylight Savings Time change.</li>
                 <li>Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output more unique. I'm using {Exposure} in the filename to accomplish this.</li>
                 <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
@@ -391,8 +390,8 @@
         }
 
         function generateSharpCap() {
-            var output = new Array("# Generated at: "+window.location.href);
-            var indent = 0;
+            var output = new Array("# Generated at: ","# "+window.location.href, "SEQUENCE");
+            var indent = 4;
             let partialInterval = parseInt(document.getElementById("partialInterval").value);
             let partialCount = parseInt(document.getElementById("partialCount").value);
             let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
@@ -432,7 +431,7 @@
                 if(e.value!=0) {
                     p = p.replace(/[A-Z].*$/,"");
                     output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
-                    indent=4;
+                    indent+=4;
                     let t = document.getElementById(p+"Plan");
                     var lastRes = "";
                     for( var row=0; row<t.rows.length; row++ ) {
@@ -450,19 +449,18 @@
                         output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
                         lastRes=document.getElementById(rowID+"resolution").value;
                     }
-                    indent=0;
+                    indent-=4;
                     output.push(' '.repeat(indent)+"END SUB")
                     output.push("");
                 }
             });
 
             function addWaitSub(title,startTime,offsetTime) {
-                indent=0;
                 output.push(' '.repeat(indent)+"DEF SUB waitFor"+title)
-                indent=4;
+                indent+=4;
                 let st = secondsToTime(timeToSeconds(startTime)+offsetTime);
                 output.push(' '.repeat(indent)+"WAIT UNTIL LATER THAN LOCALTIME "+st);
-                indent=0;
+                indent-=4;
                 output.push(' '.repeat(indent)+"END SUB")
                 output.push("");
             }
@@ -551,8 +549,6 @@
             output.push(' '.repeat(indent)+"END PAD DURATION");
             indent-=4;
             output.push(' '.repeat(indent)+"END LOOP");
-            output.push(' '.repeat(indent)+"PLAY SOUND Error");
-            output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
             output.push("");
 
             if(bailysInterval>0) {
@@ -569,6 +565,9 @@
                 output.push(' '.repeat(indent)+"END LOOP");
                 output.push("");
             }
+            output.push(' '.repeat(indent)+"PLAY SOUND Error");
+            output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
+            output.push("");
 
             if(partialInterval>0 || partialCount>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "PartialPostEclipse"');
