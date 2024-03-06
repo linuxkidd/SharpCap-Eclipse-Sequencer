@@ -185,15 +185,15 @@
                         <select id='bailysInterval' onChange="checkVisible('bailysInterval');">
                             <option value="0">Disabled</option>
                             <option value="6">+/- 6 seconds</option>
-                            <option value="8" selected="selected">+/- 8 seconds</option>
+                            <option value="8">+/- 8 seconds</option>
                             <option value="10">+/- 10 seconds</option>
                             <option value="20">+/- 20 seconds</option>
-                            <option value="30">+/- 30 seconds</option>
+                            <option value="30" selected="selected">+/- 30 seconds</option>
                             <option value="45">+/- 45 seconds</option>
                             <option value="60">+/- 60 seconds</option>
                         </select>
                     </td></tr>
-                    <tr><td class="label">Totality Interval:</td><td>at most, every 1 second<input type='hidden' id='totalityInterval' value='1'/></td></tr>
+                    <tr><td class="label">Totality Interval:</td><td>as fast as possible<input type='hidden' id='totalityInterval' value='1'/></td></tr>
                 </table>
             </td><td>
             <table class="params">
@@ -210,9 +210,9 @@
                     </select></td></tr>
             </table>
         </th></tr></table>
-        <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span></h3><b>NOTE:</b> The collection plan should take less than <span id="partialIntervalHTML">30 seconds</span> with your camera.<table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
-        <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every second for <span id="bailysPlanHeader"></span></h3><b>NOTE:</b> The collection plan should take less than 1 second with your camera.<table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
-        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: At most, every 1 second</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
+        <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span> before and after Totality.</h3><table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
+        <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.</h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
+        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
         <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
 
         <div class="planDiv" id="sequenceDiv" style="display: none;">
@@ -267,11 +267,7 @@
                             document.getElementById("partial_ends").readonly="readonly";
                         } else {
                             document.getElementById(t+"PlanDiv").style.display="block";
-                            var phPost = "";
-                            if(pc>0)
-                                phPost = " before and after totality";
-                            document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML + phPost;
-                            document.getElementById("partialIntervalHTML").innerHTML = document.getElementById("partialInterval").options[document.getElementById("partialInterval").selectedIndex].innerHTML.replace("every ","");
+                            document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
                             if(document.getElementById(t+"Plan").rows.length==0)
                                 addPlanLine(t+"Plan");
                             document.getElementById("partial_begins").removeAttribute('readonly');
@@ -284,14 +280,10 @@
                     }
                 } else {
                     var phPost = "";
-                    if(t.match("partial")) {
+                    if(t.match("partial"))
                         document.getElementById(pmap[e.id]).value = 0;
-                        if(document.getElementById("partialCount").value>0)
-                            phPost = " before and after totality";
-                    }
                     document.getElementById(t+"PlanDiv").style.display="block";
                     document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML + phPost;
-                    document.getElementById("partialIntervalHTML").innerHTML = document.getElementById("partialInterval").options[document.getElementById("partialInterval").selectedIndex].innerHTML.replace("every ","");
                     if(document.getElementById(t+"Plan").rows.length==0)
                         addPlanLine(t+"Plan");
                     if(t=="partial") {
@@ -302,7 +294,7 @@
                     }
                 }
             } catch(err) {
-                console.log("Err: "+t);
+                console.log("Err: "+t+" :: "+err);
             }
             hideOutput();
         }
@@ -465,6 +457,24 @@
                 output.push("");
             }
 
+            function addCollection(subRoutine,endTime,duration) {
+                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+endTime);
+                indent+=4;
+                if(duration>0) {
+                    output.push(' '.repeat(indent)+"PAD DURATION TO "+duration.toString());
+                    indent+=4;
+                }
+                output.push(' '.repeat(indent)+"GOSUB "+subRoutine);
+
+                if(duration>0) {
+                    indent-=4;
+                    output.push(' '.repeat(indent)+"END PAD DURATION");
+                }
+                indent-=4;
+                output.push(' '.repeat(indent)+"END LOOP");
+                output.push("");
+            }
+
             var esOffset=0;
             if(partialInterval>0 || partialCount>0 ) {
                 addWaitSub('PreEclipseStart',document.getElementById('partial_begins').value,-60);
@@ -507,33 +517,15 @@
                 output.push("")
                 output.push(' '.repeat(indent)+"GOSUB waitForEclipseStart");
                 var st = secondsToTime(timeToSeconds(document.getElementById('full_begins').value)-bailysInterval);
-                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+st);
-                indent+=4;
-                output.push(' '.repeat(indent)+"PAD DURATION TO "+preInterval.toString());
-                indent+=4;
-                output.push(' '.repeat(indent)+"GOSUB partialCollection");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END PAD DURATION");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END LOOP");
-                output.push("");
+                addCollection("partialCollection",st,preInterval);
             }
             if(bailysInterval>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPreEclipse"');
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+(totalityDuration+bailysInterval).toString());
-
-                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+document.getElementById('full_begins').value);
-                indent+=4;
-                output.push(' '.repeat(indent)+"PAD DURATION TO 1");
-                indent+=4;
-                output.push(' '.repeat(indent)+"GOSUB bailysCollection");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END PAD DURATION");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END LOOP");
-                output.push("");
+                addCollection("bailysCollection",document.getElementById('full_begins').value,document.getElementById("bailysDelay").value);
             }
+
             if(partialInterval==0 && partialCount==0 && bailysInterval==0) {
                 output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
@@ -542,11 +534,7 @@
             output.push(' '.repeat(indent)+'TARGETNAME "FullEclipse"');
             output.push(' '.repeat(indent)+"LOOP UNTIL LOCALTIME "+document.getElementById("full_ends").value);
             indent+=4;
-            output.push(' '.repeat(indent)+"PAD DURATION TO 1");
-            indent+=4;
-            output.push(' '.repeat(indent)+"GOSUB totalityCollection");
-            indent-=4;
-            output.push(' '.repeat(indent)+"END PAD DURATION");
+            addCollection("totalityCollection",document.getElementById("totalityDelay").value);
             indent-=4;
             output.push(' '.repeat(indent)+"END LOOP");
             output.push("");
@@ -554,16 +542,7 @@
             if(bailysInterval>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPostEclipse"');
                 var st = secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval);
-                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+st);
-                indent+=4;
-                output.push(' '.repeat(indent)+"PAD DURATION TO 1");
-                indent+=4;
-                output.push(' '.repeat(indent)+"GOSUB bailysCollection");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END PAD DURATION");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END LOOP");
-                output.push("");
+                addCollection("bailysCollection",st,document.getElementById("bailysDelay").value);
             }
             output.push(' '.repeat(indent)+"PLAY SOUND Error");
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
@@ -571,16 +550,7 @@
 
             if(partialInterval>0 || partialCount>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "PartialPostEclipse"');
-                output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+document.getElementById('partial_ends').value);
-                indent+=4;
-                output.push(' '.repeat(indent)+"PAD DURATION TO "+postInterval.toString());
-                indent+=4;
-                output.push(' '.repeat(indent)+"GOSUB partialCollection");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END PAD DURATION");
-                indent-=4;
-                output.push(' '.repeat(indent)+"END LOOP");
-                output.push("");
+                addCollection("partialCollection",document.getElementById('partial_ends').value,postInterval);
 
                 output.push(' '.repeat(indent)+"GOSUB waitForPostEclipseEnd");
                 output.push(' '.repeat(indent)+"GOSUB partialCollection");
@@ -638,7 +608,7 @@
 
         function updateURL() {
             var params = [];
-            ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output"].forEach((a) => {
+            ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output","bailysDelay","totalityDelay"].forEach((a) => {
                 params.push(a+"="+document.getElementById(a).value);
             });
             window.location.hash=params.join(";");
