@@ -106,7 +106,7 @@
             <ul>
                 <li><b>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11922.0 or newer!</b>.</li>
                 <li>Times should be entered in local time of your observing site - REMEMBER - Times will shift 1 hour for most due to the upcoming Daylight Savings Time change.</li>
-                <li>Due to the likelihood of multiple image / ser files being generated with the same time stamp, SharpCap filename for your selected output time should include an additional quailifier to make the output more unique. I'm using {Exposure} in the filename to accomplish this.</li>
+                <li>I suggest addting {Exposure} in the filename template in SharpCap Settings to make it easier to differentiate files after the eclipse.</li>
                 <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
             </ul>
         </div>
@@ -153,7 +153,7 @@
                 <tr><td class="label">(C4) Partial Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text"></td></tr>
             </table></td><td>
                 <table class="params" id="phaseInterval">
-                    <th colspan="2" class="headerBlock">Interval</th>
+                    <th colspan="2" class="headerBlock">Collection Timing</th>
                     <tr><td class="label">Partial Eclipse Count:</td><td>
                         <select id='partialCount' onChange="checkVisible('partialCount');">
                             <option value="0">Disabled</option>
@@ -191,9 +191,9 @@
                             <option value="30" selected="selected">+/- 30 seconds</option>
                             <option value="45">+/- 45 seconds</option>
                             <option value="60">+/- 60 seconds</option>
-                        </select>
+                        </select><input type='hidden' id='totalityInterval' value='1'/>
                     </td></tr>
-                    <tr><td class="label">Totality Interval:</td><td>as fast as possible<input type='hidden' id='totalityInterval' value='1'/></td></tr>
+                    <!-- <tr><td class="label">Totality Interval:</td><td>as fast as possible</td></tr> -->
                 </table>
             </td><td>
             <table class="params">
@@ -532,12 +532,7 @@
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+totalityDuration.toString());
             }
             output.push(' '.repeat(indent)+'TARGETNAME "FullEclipse"');
-            output.push(' '.repeat(indent)+"LOOP UNTIL LOCALTIME "+document.getElementById("full_ends").value);
-            indent+=4;
-            addCollection("totalityCollection",document.getElementById("totalityDelay").value);
-            indent-=4;
-            output.push(' '.repeat(indent)+"END LOOP");
-            output.push("");
+            addCollection("totalityCollection",document.getElementById("full_ends").value,document.getElementById("totalityDelay").value);
 
             if(bailysInterval>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPostEclipse"');
