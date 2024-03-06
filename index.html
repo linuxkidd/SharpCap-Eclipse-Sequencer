@@ -479,23 +479,18 @@
             if(partialInterval>0 || partialCount>0 ) {
                 addWaitSub('PreEclipseStart',document.getElementById('partial_begins').value,-60);
                 if(partialCount > 0)
-                    esOffset=120;
+                    esOffset=60;
                 addWaitSub('EclipseStart',document.getElementById('partial_begins').value,esOffset);
+
+                addWaitSub('PostTotalityPartialStart',document.getElementById('full_ends').value,bailysInterval+60);
+                addWaitSub('EclipseEnd',document.getElementById('partial_ends').value,-1*esOffset);
+                addWaitSub('PostEclipseEnd',document.getElementById('partial_ends').value,60);
             }
             if(bailysInterval>0) {
                 addWaitSub('BailysOneStart',document.getElementById('full_begins').value,bailysInterval*-1);
-            }
-            addWaitSub('TotalityStart',document.getElementById('full_begins').value,0);
-
-            if(bailysInterval>0) {
                 addWaitSub('BailysTwoEnd',document.getElementById('full_ends').value,bailysInterval);
             }
-            if(partialInterval>0 || partialCount>0) {
-                if(partialCount > 0)
-                    esOffset=-120;
-                addWaitSub('EclipseEnd',document.getElementById('partial_ends').value,esOffset);
-                addWaitSub('PostEclipseEnd',document.getElementById('partial_ends').value,60);
-            }
+            addWaitSub('TotalityStart',document.getElementById('full_begins').value,0);
 
             output.push("SEQUENCE");
             output.push(`    PRESERVE CAMERA SETTINGS`);
@@ -516,8 +511,8 @@
                 output.push(' '.repeat(indent)+"GOSUB partialCollection");
                 output.push("")
                 output.push(' '.repeat(indent)+"GOSUB waitForEclipseStart");
-                var st = secondsToTime(timeToSeconds(document.getElementById('full_begins').value)-bailysInterval);
-                addCollection("partialCollection",st,preInterval);
+                var stopTime = secondsToTime(timeToSeconds(document.getElementById('full_begins').value) - bailysInterval - 60); // Add in 60 second buffer before next step
+                addCollection("partialCollection",stopTime,preInterval);
             }
             if(bailysInterval>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPreEclipse"');
@@ -536,14 +531,15 @@
 
             if(bailysInterval>0) {
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPostEclipse"');
-                var st = secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval);
-                addCollection("bailysCollection",st,document.getElementById("bailysDelay").value);
+                var stopTime = secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval);
+                addCollection("bailysCollection",stopTime,document.getElementById("bailysDelay").value);
             }
             output.push(' '.repeat(indent)+"PLAY SOUND Error");
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
             output.push("");
 
             if(partialInterval>0 || partialCount>0) {
+                output.push(' '.repeat(indent)+'GOSUB waitForPostTotalityPartialStart');
                 output.push(' '.repeat(indent)+'TARGETNAME "PartialPostEclipse"');
                 addCollection("partialCollection",document.getElementById('partial_ends').value,postInterval);
 
