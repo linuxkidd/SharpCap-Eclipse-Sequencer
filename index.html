@@ -390,8 +390,8 @@
         }
 
         function generateSharpCap() {
-            var output = new Array("# Generated at: ","# "+window.location.href, "SEQUENCE");
-            var indent = 4;
+            var output = new Array("# Generated at: ","# "+window.location.href);
+            var indent = 0;
             let partialInterval = parseInt(document.getElementById("partialInterval").value);
             let partialCount = parseInt(document.getElementById("partialCount").value);
             let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
@@ -487,6 +487,7 @@
                 addWaitSub('PostEclipseEnd',document.getElementById('partial_ends').value,60);
             }
 
+            output.push("SEQUENCE");
             output.push(`    PRESERVE CAMERA SETTINGS`);
             output.push(`        UNLOCK CONTROLS`);
             output.push("");
