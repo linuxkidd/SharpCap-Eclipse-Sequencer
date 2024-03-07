@@ -636,15 +636,13 @@
 
 
         function parseSavedParams(params) {
-            let kvs=params.replace("#","").split(";");
-            kvs.forEach((a) => {
-                let kv=decodeURI(a).split("=");
+            for( const [k,v] of Object.entries(params) ) {
                 try {
-                    document.getElementById(kv[0]).value = kv[1];
+                    document.getElementById(k).value = v;
                 } catch(e) {
                     // pass;
                 }
-            });
+            }
         }
 
 
@@ -709,25 +707,26 @@
         }
 
         function dumpParams() {
-            var params = [];
+            var params = {};
             ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output","bailysDelay","totalityDelay"].forEach((a) => {
-                params.push(a+"="+document.getElementById(a).value);
+                params[a]=document.getElementById(a).value;
+                if(document.getElementById(a).value.match(/^[0-9\.\-]+$/))
+                    params[a]=parseFloat(document.getElementById(a).value);
             });
-            return params.join(";");
+            return params;
         }
 
-
         function saveState() {
-            window.localStorage.setItem("params",dumpParams());
-            window.localStorage.setItem("plans",JSON.stringify(dumpPlans()));
+            window.localStorage.setItem("params",JSON.stringify(dumpParams()));
+            window.localStorage.setItem( "plans",JSON.stringify(dumpPlans()));
         }
 
         function loadState() {
             let ls=window.localStorage;
             if(ls.hasOwnProperty('params'))
-                parseSavedParams(ls.getItem('params'));
+                parseSavedParams(JSON.parse(ls.getItem('params')));
             if(ls.hasOwnProperty('plans'))
-                parseSavedPlans(ls.getItem('plans'));
+                parseSavedPlans(JSON.parse(ls.getItem('plans')));
         }
 
         function updateURL() {
@@ -746,7 +745,8 @@
         checkVisible("partialInterval");
         checkVisible("partialCount");
         checkVisible("bailysInterval");
-        ["partial_begins","full_begins","full_ends","partial_ends"].forEach((t) => verifyTime(document.getElementById(t)));
+        setTimeout(function() {["partial_begins","full_begins","full_ends","partial_ends"].forEach((t) => verifyTime(document.getElementById(t)));},500);
+        
     </script>
 </body>
  
