@@ -8,6 +8,10 @@
           content="width=device-width, initial-scale=1.0">
 </head>
 <style type="text/css">
+    h1 {
+        color: blue;
+    }
+
     h3 {
         text-align: left;
         padding-left: 15px;
@@ -151,35 +155,31 @@
  
 <body>
     <div id="bodyWrapper">
-        <h1 style="color: blue;">
+        <h1>
           SharpCap Eclipse Sequence Creator
         </h1>
         <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11922.0 or newer!</h3>
         <ul class="topMenu">
             <li><a id="MenuNotes" href="javascript://" onClick="toggleDiv(this);" class='active'>Notes</a></li>
-            <li><a id="MenuTips" href="javascript://" onClick="toggleDiv(this);">Tips</a></li>
             <li><a id="MenuInstructions" href="javascript://" onClick="toggleDiv(this);">Instructions</a></li>
             <li style="border-right: 0px;"><a href="javascript://" >&lt; - Click the active menu item to hide the content.</a></li>
         </ul>
-        <div class="flipDiv" id="FlipDivTips">
+        <div class="flipDiv" id="FlipDivNotes">
             <dl>
+                <dt>What time?</dt>
+                <dd>Times should be entered in local time of your observing site.</dd>
+                <dd><b>REMEMBER</b> - Times will shift earlier by 1 hour for most due to the upcoming Daylight Savings Time change.</dd>
+                <dd>You can get the local Eclilpse Event Times from <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Time and Date</a>, <a href="http://xjubier.free.fr/en/site_pages/solar_eclipses/TSE_2024_GoogleMapFull.html" target="_blank">Xavier's Eclipse Map</a>, or lots of other sources.</dd>
+                <dt>Lots of Data...</dt>
+                <dd>I suggest addting <span class="code">{Exposure}</span> in the filename template in SharpCap Settings to make it easier to differentiate files after the eclipse.</dd>
+                <dt>Test, test test!</dt>
+                <dd>Ahead of the eclipse, please test the operation and behavior of your hardware.</dd>
                 <dt>Total Recall</dt>
                 <dd>The full configuration is now saved to your local browser, in case you'd like to tweak your action plan in the future.</dd>
                 <dd>The parameter encoded URL is put as a comment in the top of the generated sequence file, so you can use that for future collection plan tweaks.</dd>
                 <dt>Baily's Beads into Totality</dt>
                 <dd>If you'd like to capture the Baily's Beads Collection Plan into totality, you can do so by fudging the 'Full Begins' and/or 'Full Ends' times to be after totality begins/before totality ends.</dd>
                 <dd>This may be useful since prediction of the exact moment of totality is not exact due to the shape of the Moon's surface.</dd>
-            </dl>
-        </div>
-        <div class="flipDiv" id="FlipDivNotes">
-            <dl>
-                <dt>What time?</dt>
-                <dd>Times should be entered in local time of your observing site - <b>REMEMBER</b> - Times will shift 1 hour for most due to the upcoming Daylight Savings Time change.</dd>
-                <dd>You can get the local Eclilpse Event Times from <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Time and Date</a>, <a href="http://xjubier.free.fr/en/site_pages/solar_eclipses/TSE_2024_GoogleMapFull.html" target="_blank">Xavier's Eclipse Map</a>, or lots of other sources.</dd>
-                <dt>Lots of Data...</dt>
-                <dd>I suggest addting <span class="code">{Exposure}</span> in the filename template in SharpCap Settings to make it easier to differentiate files after the eclipse.</dd>
-                <dt>Test, test test!</dt>
-                <dd>Ahead of the eclipse, please test the operation and behavior of your hardware.</dd>
             </dl>
         </div>
         <div class="flipDiv" id="FlipDivInstructions">
