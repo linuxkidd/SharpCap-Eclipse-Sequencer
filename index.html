@@ -100,17 +100,17 @@
         <h1 style="color: blue;">
           SharpCap Eclipse Sequence Creator
         </h1>
-        <a id="notesToggle" href="javascript://" onClick="toggleDiv('notes');" style="margin: 15px;">( Hide Notes )</a>
+        <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11922.0 or newer!</h3>
+        <a id="notesToggle" href="javascript://" onClick="toggleDiv('notes');" style="margin: 15px;">[ Hide Notes ]</a>
         <div id="notesDiv">
             <span style="font-weight: bold;">Notes:</span>
             <ul>
-                <li><b>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11922.0 or newer!</b>.</li>
                 <li>Times should be entered in local time of your observing site - REMEMBER - Times will shift 1 hour for most due to the upcoming Daylight Savings Time change.</li>
                 <li>I suggest addting {Exposure} in the filename template in SharpCap Settings to make it easier to differentiate files after the eclipse.</li>
                 <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
             </ul>
         </div>
-        <a id="tipsToggle" href="javascript://" onClick="toggleDiv('tips');" style="margin: 15px;">( Show Tips )</a>
+        <a id="tipsToggle" href="javascript://" onClick="toggleDiv('tips');" style="margin: 15px;">[ Show Tips ]</a>
         <div id="tipsDiv">
             <b>Tips:</b>
             <ul style="margin-top: 3px;">
@@ -119,7 +119,7 @@
                 <li>If you'd like to capture the Baily's Beads Collection Plan into totality, you can do so by fudging the 'Full Begins' and/or 'Full Ends' times to be after totality begins/before totality ends.</li>
             </ul>
         </div>
-        <a id="instructionsToggle" href="javascript://" onClick="toggleDiv('instructions');" style="margin: 15px;">( Show Instructions )</a>
+        <a id="instructionsToggle" href="javascript://" onClick="toggleDiv('instructions');" style="margin: 15px;">[ Show Instructions ]</a>
         <div id="instructionsDiv">
             <b>Instructions:</b>
             <ol style="margin-top: 3px;">
@@ -236,12 +236,12 @@
         function toggleDiv(t) {
             let i = document.getElementById(t+'Div');
             let a = document.getElementById(t+'Toggle');
-            if(a.innerHTML == "( Hide "+ucFirst(t)+" )" ) {
+            if(a.innerHTML == "[ Hide "+ucFirst(t)+" ]" ) {
                 i.style.display = "none";
-                a.innerHTML = "( Show "+ucFirst(t)+" )";
+                a.innerHTML = "[ Show "+ucFirst(t)+" ]";
             } else {
                 i.style.display = "block";
-                a.innerHTML = "( Hide "+ucFirst(t)+" )";
+                a.innerHTML = "[ Hide "+ucFirst(t)+" ]";
             }
             saveState();
         }
