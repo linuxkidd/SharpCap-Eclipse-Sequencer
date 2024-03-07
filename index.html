@@ -18,7 +18,7 @@
         margin: auto;
     }
 
-    #tipsDiv, #instructionsDiv {
+    #FlipDivTips, #FlipDivInstructions {
         display: none;
     }
 
@@ -55,6 +55,40 @@
 
     table td {
         padding: 3px;
+    }
+
+    ul.topMenu {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #666;
+        margin-bottom: 15px;
+    }
+
+    ul.topMenu li {
+      float: left;
+      border-right: 1px solid #bbb;
+    }
+
+    ul.topMenu li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+    }
+
+    ul.topMenu li a:hover {
+      background-color: #111;
+    }
+
+    ul.topMenu li a.active {
+        background-color: #04AA6D;
+    }
+
+    .flipDiv {
+        max-width: 80%;
     }
 
     .params {
@@ -101,28 +135,28 @@
           SharpCap Eclipse Sequence Creator
         </h1>
         <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11922.0 or newer!</h3>
-        <a id="notesToggle" href="javascript://" onClick="toggleDiv('notes');" style="margin: 15px;">[ Hide Notes ]</a>
-        <div id="notesDiv">
-            <span style="font-weight: bold;">Notes:</span>
+        <ul class="topMenu">
+            <li><a id="MenuNotes" href="javascript://" onClick="toggleDiv(this);" class='active'>Notes</a></li>
+            <li><a id="MenuTips" href="javascript://" onClick="toggleDiv(this);">Tips</a></li>
+            <li><a id="MenuInstructions" href="javascript://" onClick="toggleDiv(this);">Instructions</a></li>
+            <li style="border-right: 0px;"><a href="javascript://" >&lt; - Click the active menu item to hide the content.</a></li>
+        </ul>
+        <div class="flipDiv" id="FlipDivTips">
+            <ul>
+                <li>The full configuration is now saved to your local browser, in case you'd like to tweak your action plan in the future.</li>
+                <li>The parameter encoded URL is put as a comment in the top of the generated sequence file, so you can use that for future collection plan tweaks.</li>
+                <li>If you'd like to capture the Baily's Beads Collection Plan into totality, you can do so by fudging the 'Full Begins' and/or 'Full Ends' times to be after totality begins/before totality ends.</li>
+            </ul>
+        </div>
+        <div class="flipDiv" id="FlipDivNotes">
             <ul>
                 <li>Times should be entered in local time of your observing site - REMEMBER - Times will shift 1 hour for most due to the upcoming Daylight Savings Time change.</li>
                 <li>I suggest addting {Exposure} in the filename template in SharpCap Settings to make it easier to differentiate files after the eclipse.</li>
                 <li>Ahead of the eclipse, please test the operation and behavior of your hardware.  Specifically, that the frame download and saving rate can keep up with the collection plan.  Otherwise, unexpected behavior may occur durint the eclipse.</li>
             </ul>
         </div>
-        <a id="tipsToggle" href="javascript://" onClick="toggleDiv('tips');" style="margin: 15px;">[ Show Tips ]</a>
-        <div id="tipsDiv">
-            <b>Tips:</b>
-            <ul style="margin-top: 3px;">
-                <li>The full configuration is now saved to your local browser, in case you'd like to tweak your action plan in the future.</li>
-                <li>The parameter encoded URL is put as a comment in the top of the generated sequence file, so you can use that for future collection plan tweaks.</li>
-                <li>If you'd like to capture the Baily's Beads Collection Plan into totality, you can do so by fudging the 'Full Begins' and/or 'Full Ends' times to be after totality begins/before totality ends.</li>
-            </ul>
-        </div>
-        <a id="instructionsToggle" href="javascript://" onClick="toggleDiv('instructions');" style="margin: 15px;">[ Show Instructions ]</a>
-        <div id="instructionsDiv">
-            <b>Instructions:</b>
-            <ol style="margin-top: 3px;">
+        <div class="flipDiv" id="FlipDivInstructions">
+            <ol>
                 <li>Go to <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Eclipse Map</a>.</li>
                 <li>Zoom into your observation location and click to place the pin on the map.</li>
                 <li>Note the Partial and Full Begin and End times provided on the left side of the map.</li>
@@ -234,16 +268,29 @@
         }
 
         function toggleDiv(t) {
-            let i = document.getElementById(t+'Div');
-            let a = document.getElementById(t+'Toggle');
-            if(a.innerHTML == "[ Hide "+ucFirst(t)+" ]" ) {
-                i.style.display = "none";
-                a.innerHTML = "[ Show "+ucFirst(t)+" ]";
-            } else {
-                i.style.display = "block";
-                a.innerHTML = "[ Hide "+ucFirst(t)+" ]";
+            let divs=document.querySelectorAll('[id^="FlipDiv"]');
+            let menus=document.querySelectorAll('[id^="Menu"]');
+            if(t.classList.contains("active")) {
+                divs.forEach(async (d) => {
+                    d.style.display = "none";
+                });
+                menus.forEach(async (m) => { 
+                    m.classList.remove("active");
+                });
+                return;
             }
-            saveState();
+            divs.forEach(async (d) => {
+                if(d.id!="FlipDiv"+t.innerHTML) {
+                    d.style.display = "none";
+                }
+            });
+            menus.forEach(async (m) => { 
+                if(m.id!="Menu"+t.innerHTML) {
+                    m.classList.remove("active");
+                }
+            });
+            t.classList.add("active");
+            document.getElementById("FlipDiv"+t.innerHTML).style.display = "block";
         }
 
         function checkVisible(t) {
