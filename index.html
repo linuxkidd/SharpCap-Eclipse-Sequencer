@@ -243,7 +243,7 @@
                 i.style.display = "block";
                 a.innerHTML = "( Hide "+ucFirst(t)+" )";
             }
-            updateURL();
+            saveState();
         }
 
         function checkVisible(t) {
@@ -301,7 +301,7 @@
 
         function hideOutput() {
             document.getElementById("sequenceDiv").style.display = "none";
-            updateURL();
+            saveState();
         }
 
         function verifyTime(t) {
@@ -311,7 +311,7 @@
                 t.classList.add("goodInput");
                 t.classList.remove("badInput");
                 t.classList.remove("disabledInput");
-                updateURL();
+                saveState();
             } else {
                 t.classList.remove("goodInput");
                 t.classList.add("badInput");
@@ -681,7 +681,7 @@
                     }
                 }
             });
-            window.location.hash="";
+            window.location.hash=null;
         }
 
         function dumpPlans() {
@@ -729,14 +729,6 @@
                 parseSavedPlans(JSON.parse(ls.getItem('plans')));
         }
 
-        function updateURL() {
-            saveState();
-            // var params = dumpParams();
-            // params.push("plans="+JSON.stringify(dumpPlans()));
-            // window.location.hash=params.join(";");
-        }
-
-        window.onhashchange = function() { readURL(); };
         readURL();
         loadState();
 
