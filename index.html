@@ -339,9 +339,9 @@
             cells[0].innerHTML = "<input type='hidden' name='uuid' value='"+rowID+"' /><span name='step'>Step "+(rows+1).toString()+"</span>";
             cells[0].style.fontWeight = "bold";
             cells[0].style.textAlign = "center";
-            cells[1].innerHTML = "Capture <input type='number' id='"+rowID+"count' value='1' min='1' /><select id='"+rowID+"type'><option value='frames' selected='selected'>frames</option><option value='seconds'>seconds</option></select>";
-            cells[2].innerHTML = "at Exposure: <input type='number' id='"+rowID+"exposure' value='0.01' min='0' /> sec";
-            cells[3].innerHTML = "at Resolution: <input type='text' id='"+rowID+"resolution' value='' /> pixels (blank = no change)";
+            cells[1].innerHTML = "Capture <input type='number' id='"+rowID+"count' value='1' min='1' onChange='hideOutput();' /><select onChange='hideOutput();' id='"+rowID+"type'><option value='frames' selected='selected'>frames</option><option value='seconds'>seconds</option></select>";
+            cells[2].innerHTML = "at Exposure: <input type='number' id='"+rowID+"exposure' value='0.01' min='0' onChange='hideOutput();' /> sec";
+            cells[3].innerHTML = "at Resolution: <input type='text' id='"+rowID+"resolution' value='' onChange='hideOutput();' /> pixels (blank = no change)";
             cells[4].innerHTML = "<input type='button' value='Delete Step' onClick='removeRow(this)' />"
             checkIfLastStep(t);
         }
@@ -443,23 +443,32 @@
                     p = p.replace(/[A-Z].*$/,"");
                     output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
                     indent+=4;
+                    preOutput.push("#".repeat(36),"# "+p+"Collection Plan","#".repeat(36));
                     let t = document.getElementById(p+"Plan");
                     var lastRes = "";
+                    var rowPseudo = "";
                     for( var row=0; row<t.rows.length; row++ ) {
                         let rowID = t.rows[row].cells[0].childNodes[0].value;
+                        rowPseudo = "Step: "+(row+1).toString()+" - Capture "+document.getElementById(rowID+"count").value+" "+document.getElementById(rowID+"type").value;
+                        rowPseudo += " at Exposure "+document.getElementById(rowID+"exposure").value + " seconds";
                         output.push(' '.repeat(indent)+"SET EXPOSURE TO "+document.getElementById(rowID+"exposure").value);
-                        if(document.getElementById(rowID+"resolution").value!="" && document.getElementById(rowID+"resolution").value!=lastRes)
+                        if(document.getElementById(rowID+"resolution").value!="" && document.getElementById(rowID+"resolution").value!=lastRes) {
                             output.push(' '.repeat(indent)+"SET RESOLUTION TO "+document.getElementById(rowID+"resolution").value);
+                            rowPseudo += " at Resollution "+document.getElementById(rowID+"resolution").value;
+                        }
                         var secVerb = "";
                         if(document.getElementById(rowID+"type").value=="seconds")
                             secVerb = " SECONDS ";
                         if(row>0) {
                             var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,2);
                             output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
+                            preOutput.push("# Wait for "+delaySecs.toString()+" seconds");
                         }
                         output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
                         lastRes=document.getElementById(rowID+"resolution").value;
+                        preOutput.push("# "+rowPseudo);
                     }
+                    preOutput.push("#","#");
                     indent-=4;
                     output.push(' '.repeat(indent)+"END SUB")
                     output.push("");
@@ -524,6 +533,7 @@
             output.push(' '.repeat(indent)+'SET OUTPUT FORMAT TO "'+document.getElementById("output").value+'"');
             output.push("");
 
+            preOutput.push("#","## Begin Sequence","#");
             var esOffset = 0;
             if(partialInterval>0 || partialCount>0) {
                 if(partialCount > 0)
@@ -592,7 +602,8 @@
             output.push(`        END UNLOCK`);
             output.push(`    END PRESERVE`);
             output.push("END SEQUENCE");
-            preOutput.push("#","#");
+            preOutput.push("#","## End Sequence","#","#");
+
             document.getElementById("SharpCapSequence").value = preOutput.join("\n") + "\n\n" + output.join("\n");
             document.getElementById("sequenceDiv").style.display = "block";
             window.scrollTo(0, document.body.scrollHeight);
@@ -623,8 +634,9 @@
             document.body.removeChild(event.target);
         }
 
-        function readURL() {
-            let kvs = window.location.hash.replace("#","").split(";");
+
+        function parseSavedParams(params) {
+            let kvs=params.replace("#","").split(";");
             kvs.forEach((a) => {
                 let kv=decodeURI(a).split("=");
                 try {
@@ -635,18 +647,105 @@
             });
         }
 
-        function updateURL() {
+
+        function parseSavedPlans(plans) {
+            for( const [p,rows] of Object.entries(plans) ) {
+                let t = document.getElementById(p+"Plan");
+                if(t) {
+                    for(var r = t.rows.length; r<rows.length; r++)
+                        addPlanLine(p+"Plan");
+
+                    for(var row=0; row<rows.length; row++) {
+                        let rowID = t.rows[row].cells[0].childNodes[0].value;
+                        document.getElementById(rowID+"count").value    = rows[row][0];
+                        document.getElementById(rowID+"type").value     = rows[row][1];
+                        document.getElementById(rowID+"exposure").value = rows[row][2];
+                        if(rows[row].length==4)
+                            document.getElementById(rowID+"resolution").value = rows[row][3];
+                    }
+                }
+            }
+        }
+
+        function readURL() {
+            let kvs = window.location.hash.replace("#","").split(";");
+            kvs.forEach((a) => {
+                if(a.length == 0)
+                    return;
+                let kv=decodeURI(a).split("=");
+                if(kv[0]=="plans") {
+                    parseSavedPlans(JSON.parse(kv[1]));
+                } else {
+                    try {
+                        document.getElementById(kv[0]).value = kv[1];
+                    } catch(e) {
+                        // pass;
+                    }
+                }
+            });
+            window.location.hash="";
+        }
+
+        function dumpPlans() {
+            var plans={};
+            ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((p) => {
+                let e = document.getElementById(p);
+                if(e.value!=0) {
+                    p = p.replace(/[A-Z].*$/,"");
+                    plans[p]=new Array();
+                    let t = document.getElementById(p+"Plan");
+                    for( var row=0; row<t.rows.length; row++ ) {
+                        let rowID = t.rows[row].cells[0].childNodes[0].value;
+                        plans[p].push([
+                            parseFloat(document.getElementById(rowID+"count").value),
+                            document.getElementById(rowID+"type").value,
+                            parseFloat(document.getElementById(rowID+"exposure").value)]);
+                        if(document.getElementById(rowID+"resolution").value!="")
+                            plans[p][plans[p].length - 1].push(document.getElementById(rowID+"resolution").value);
+                    }
+                }
+            });
+            return plans;
+        }
+
+        function dumpParams() {
             var params = [];
             ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output","bailysDelay","totalityDelay"].forEach((a) => {
                 params.push(a+"="+document.getElementById(a).value);
             });
-            window.location.hash=params.join(";");
+            return params.join(";");
         }
+
+
+        function saveState() {
+            window.localStorage.setItem("params",dumpParams());
+            window.localStorage.setItem("plans",JSON.stringify(dumpPlans()));
+        }
+
+        function loadState() {
+            let ls=window.localStorage;
+            if(ls.hasOwnProperty('params'))
+                parseSavedParams(ls.getItem('params'));
+            if(ls.hasOwnProperty('plans'))
+                parseSavedPlans(ls.getItem('plans'));
+        }
+
+        function updateURL() {
+            saveState();
+            // var params = dumpParams();
+            // params.push("plans="+JSON.stringify(dumpPlans()));
+            // window.location.hash=params.join(";");
+        }
+
+        window.onhashchange = function() { readURL(); };
         readURL();
+        loadState();
+
+        if(document.getElementById("totalityPlan").rows.length==0)
+            addPlanLine("totalityPlan");
         checkVisible("partialInterval");
         checkVisible("partialCount");
         checkVisible("bailysInterval");
-        addPlanLine("totalityPlan");
         ["partial_begins","full_begins","full_ends","partial_ends"].forEach((t) => verifyTime(document.getElementById(t)));
     </script>
 </body>
