@@ -543,11 +543,10 @@
                         var secVerb = "";
                         if(document.getElementById(rowID+"type").value=="seconds")
                             secVerb = " SECONDS ";
-                        if(row>0) {
-                            var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,2);
-                            output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
-                            preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
-                        }
+
+                        var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,2);
+                        output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
+                        preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
                         output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
                         lastRes=document.getElementById(rowID+"resolution").value;
                         preOutput.push("    # "+rowPseudo);
