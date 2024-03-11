@@ -158,7 +158,7 @@
         <h1>
           SharpCap Eclipse Sequence Creator
         </h1>
-        <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11922.0 or newer!</h3>
+        <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11947 or newer!</h3>
         <ul class="topMenu">
             <li><a id="MenuNotes" href="javascript://" onClick="toggleDiv(this);" class='active'>Notes</a></li>
             <li><a id="MenuInstructions" href="javascript://" onClick="toggleDiv(this);">Instructions</a></li>
@@ -586,7 +586,6 @@
                 output.push(' '.repeat(indent)+"END LOOP");
                 indent-=4;
                 output.push(' '.repeat(indent)+"END STOP AT");
-                output.push("");
             }
 
             var esOffset=0;
@@ -618,46 +617,64 @@
             output.push("");
 
             preOutput.push("    #","    # ## Begin Sequence","    #");
+            var startTime = 0;
+            var stopTime = 0;
             var esOffset = 0;
+            /* 
+             * BEGIN Partial @ C1 SEQUENCE
+             */
             if(partialInterval>0 || partialCount>0) {
                 if(partialCount > 0) {
                     esOffset = 60;
-                    preOutput.push("    # Wait until "+secondsToTime(timeToSeconds(document.getElementById('partial_begins').value)-esOffset));
+                    startTime = secondsToTime(timeToSeconds(document.getElementById('partial_begins').value) - esOffset);
+                    preOutput.push("    # Wait until "+startTime);
                     preOutput.push("    # Capture one iteration of 'partialCollection'");
 
+                    output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+startTime);
+                    indent+=4;
                     output.push(' '.repeat(indent)+"GOSUB waitForPreEclipseStart");
-                    stopTime = secondsToTime(timeToSeconds(document.getElementById('partial_begins').value)+esOffset-1);
-                    output.push(' '.repeat(indent)+"STOP AT LOCALTIME "+stopTime);
-                    indent+=4;
-                    output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+stopTime);
-                    indent+=4;
-                    output.push(' '.repeat(indent)+"PAD DURATION TO "+(esOffset*2).toString());
-                    indent+=4;
                     output.push(' '.repeat(indent)+"GOSUB partialCollection");
                     indent-=4;
-                    output.push(' '.repeat(indent)+"END PAD DURATION");
-                    indent-=4;
-                    output.push(' '.repeat(indent)+"END LOOP");
-                    indent-=4;
-                    output.push(' '.repeat(indent)+"END STOP AT");
+                    output.push(' '.repeat(indent)+"END IF");
                     output.push("")
                 }
-                preOutput.push("    #","    # Wait until "+secondsToTime(timeToSeconds(document.getElementById('partial_begins').value)+esOffset));
+                startTime = secondsToTime(timeToSeconds(document.getElementById('partial_begins').value) + esOffset);
+                stopTime = secondsToTime(timeToSeconds(document.getElementById('full_begins').value) - bailysInterval - 60); // Add in 60 second buffer before next step
+                preOutput.push("    #","    # Wait until "+startTime);
+                output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
+                indent+=4;
                 output.push(' '.repeat(indent)+"GOSUB waitForEclipseStart");
-                var stopTime = secondsToTime(timeToSeconds(document.getElementById('full_begins').value) - bailysInterval - 60); // Add in 60 second buffer before next step
                 preOutput.push("    # Collect 'partialCollection' every "+preInterval+" seconds, until "+stopTime);
                 addCollection("partialCollection",stopTime,preInterval);
+                indent-=4;
+                output.push(' '.repeat(indent)+"END IF");
+                output.push("");
             }
-            if(bailysInterval>0) {
-                preOutput.push("    #","    # Wait until "+secondsToTime(timeToSeconds(document.getElementById('full_begins').value)-bailysInterval));
+            /* 
+             * BEGIN Baily's @ C2 SEQUENCE
+             */
+             if(bailysInterval>0) {
+                startTime = secondsToTime(timeToSeconds(document.getElementById('full_begins').value)-bailysInterval);
+                stopTime = document.getElementById('full_begins').value;
+                preOutput.push("    #","    # Wait until "+startTime);
+                output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
+                indent+=4;
                 output.push(' '.repeat(indent)+"GOSUB waitForBailysOneStart");
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPreEclipse"');
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+(totalityDuration+bailysInterval).toString());
                 preOutput.push("    # Collect 'bailysCollection' every "+document.getElementById("bailysDelay").value+" seconds, until "+document.getElementById('full_begins').value);
                 addCollection("bailysCollection",document.getElementById('full_begins').value,document.getElementById("bailysDelay").value);
+                indent-=4;
+                output.push(' '.repeat(indent)+"END IF");
+                output.push("");
             }
-
+            /* 
+             * BEGIN Totality @ C2 SEQUENCE
+             */
+            stopTime = document.getElementById("full_ends").value;
+            output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
+            indent+=4;
             preOutput.push("    #","    # Wait until "+document.getElementById('full_begins').value);
             output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
             if(partialInterval==0 && partialCount==0 && bailysInterval==0) {
@@ -667,44 +684,61 @@
             output.push(' '.repeat(indent)+'TARGETNAME "FullEclipse"');
             preOutput.push("    # Collect 'totalityCollection' every "+document.getElementById("totalityDelay").value+" seconds, until "+document.getElementById('full_ends').value);
             addCollection("totalityCollection",document.getElementById("full_ends").value,document.getElementById("totalityDelay").value);
-
+            indent-=4;
+            output.push(' '.repeat(indent)+"END IF");
+            output.push("");
+            /* 
+             * BEGIN Baily's @ C3 SEQUENCE
+             */
             if(bailysInterval>0) {
+                stopTime = secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval);
+                output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
+                indent+=4;
                 preOutput.push("    #","    # Collect 'bailysCollection' every "+document.getElementById("bailysDelay").value+" seconds, until "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval));
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPostEclipse"');
-                var stopTime = secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval);
                 addCollection("bailysCollection",stopTime,document.getElementById("bailysDelay").value);
+                indent-=4;
+                output.push(' '.repeat(indent)+"END IF");
+                output.push("");
             }
+
+            output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value) + bailysInterval));
+            indent+=4;
             output.push(' '.repeat(indent)+"PLAY SOUND Error");
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
+            indent-=4;
+            output.push(' '.repeat(indent)+"END IF");
             output.push("");
 
-            if(partialInterval>0 || partialCount>0) {
-                preOutput.push("    #","    # Wait until "+ secondsToTime(timeToSeconds(document.getElementById('full_ends').value) + bailysInterval + 60));
+            /* 
+             * BEGIN Partial @ C3 SEQUENCE
+             */
+             if(partialInterval>0 || partialCount>0) {
+                startTime = secondsToTime(timeToSeconds(document.getElementById('full_ends').value) + bailysInterval + 60);
+                stopTime = secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) - esOffset);
+                preOutput.push("    #","    # Wait until " + startTime);
+                output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME " + stopTime);
+                indent+=4;
                 output.push(' '.repeat(indent)+'GOSUB waitForPostTotalityPartialStart');
                 output.push(' '.repeat(indent)+'TARGETNAME "PartialPostEclipse"');
-                preOutput.push("    # Collect 'partialCollection' every "+postInterval+" seconds, until "+secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) - esOffset));
-                addCollection("partialCollection",secondsToTime(timeToSeconds(document.getElementById('partial_ends').value)-esOffset),postInterval);
+                preOutput.push("    # Collect 'partialCollection' every " + postInterval + " seconds, until " + stopTime);
+                addCollection("partialCollection",stopTime,postInterval);
+                indent-=4;
+                output.push(' '.repeat(indent)+"END IF");
+                output.push("");
 
                 if(partialCount > 0) {
                     esOffset = 60;
-                    preOutput.push("    #","    # Wait until "+ secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) + esOffset));
+                    startTime = secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) + esOffset);
+                    stopTime = secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) + esOffset);
+                    preOutput.push("    #","    # Wait until " + startTime);
                     preOutput.push("    # Capture one iteration of 'partialCollection'");
+                    output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME " + stopTime);
+                    indent+=4;
                     output.push(' '.repeat(indent)+"GOSUB waitForPostEclipseEnd");
-
-                    stopTime = secondsToTime(timeToSeconds(document.getElementById('partial_ends').value)+esOffset);
-                    output.push(' '.repeat(indent)+"STOP AT LOCALTIME "+stopTime);
-                    indent+=4;
-                    output.push(' '.repeat(indent)+"LOOP UNTIL LATER THAN LOCALTIME "+stopTime);
-                    indent+=4;
-                    output.push(' '.repeat(indent)+"PAD DURATION TO "+(esOffset*2).toString());
-                    indent+=4;
                     output.push(' '.repeat(indent)+"GOSUB partialCollection");
                     indent-=4;
-                    output.push(' '.repeat(indent)+"END PAD DURATION");
-                    indent-=4;
-                    output.push(' '.repeat(indent)+"END LOOP");
-                    indent-=4;
-                    output.push(' '.repeat(indent)+"END STOP AT");
+                    output.push(' '.repeat(indent)+"END IF");
                     output.push("")
                 }
             }
