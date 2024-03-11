@@ -261,7 +261,6 @@
                             <option value="60">+/- 60 seconds</option>
                         </select><input type='hidden' id='totalityInterval' value='1'/>
                     </td></tr>
-                    <!-- <tr><td class="label">Totality Interval:</td><td>as fast as possible</td></tr> -->
                 </table>
             </td><td>
             <table class="params">
@@ -276,6 +275,7 @@
                         <option value="TIFF files (*.tif)">TIFF</option>
                         <option value="ADV files (*.adv)">ADV</option>
                     </select></td></tr>
+                <tr><td class="label">SharpCap Profile<br />(blank for none):</td><td><input onChange="hideOutput();" type="text" id="profile" value="" /></td></tr>
             </table>
         </th></tr></table>
         <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span> before and after Totality.</h3><table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
@@ -614,6 +614,11 @@
             output.push(' '.repeat(indent)+"SET GAIN TO "+document.getElementById("gain").value);
             output.push(' '.repeat(indent)+"SET OFFSET to "+document.getElementById("offset").value);
             output.push(' '.repeat(indent)+'SET OUTPUT FORMAT TO "'+document.getElementById("output").value+'"');
+            if(document.getElementById("profile").value!="") {
+                preOutput.push("    # Load profile "+document.getElementById("profile").value);
+                output.push(' '.repeat(indent)+"​LOAD PROFILE "+document.getElementById("profile").value);
+            }
+
             output.push("");
 
             preOutput.push("    #","    # ## Begin Sequence","    #");
@@ -858,7 +863,7 @@
             else
                 var params = {};
 
-            ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output","bailysDelay","totalityDelay"].forEach((a) => {
+            ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output","profile","bailysDelay","totalityDelay"].forEach((a) => {
                 params[a]=document.getElementById(a).value;
                 if(hashMode) {
                         params.push(a+'='+document.getElementById(a).value)
