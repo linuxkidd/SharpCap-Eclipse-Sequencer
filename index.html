@@ -12,9 +12,12 @@
         color: blue;
     }
 
-    h3 {
-        text-align: left;
-        padding-left: 15px;
+    #headerDiv {
+        margin-bottom: 1em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row;
     }
 
     #bodyWrapper {
@@ -119,7 +122,7 @@
         border: 1px solid;
     }
 
-    .planDiv {
+    .planDiv, .psPlanDiv {
         border: 1px solid;
         margin: 10px auto;
         min-width: 1000px;
@@ -158,7 +161,10 @@
         <h1>
           SharpCap Eclipse Sequence Creator
         </h1>
-        <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11947 or newer!</h3>
+        <div id="headerDiv">
+            <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11947 or newer!</h3>
+            <input type="button" value="Optional: Download Powershell Script & Assets" id="psDownloadButton" style="max-width: 45%;" onClick="downloadPSScript();" />
+        </div>
         <ul class="topMenu">
             <li><a id="MenuNotes" href="javascript://" onClick="toggleDiv(this);" class='active'>Notes</a></li>
             <li><a id="MenuInstructions" href="javascript://" onClick="toggleDiv(this);">Instructions</a></li>
@@ -210,6 +216,16 @@
                 </li>
                 <li>Monitor for an Alert sound, and banner at the top to Remove or Apply the Solar Filter around the time of Totality.</li>
             </ol>
+
+            <h4><em>Optional:</em> Download the Powershell script and assets</h4>
+            <ol>
+                <li>Download Powershell script and assets zip archive</li>
+                <li>Extract the zip archive to <span class="code">{SHARPCAP_INSTALL_FOLDER}\scripts\eclipse\</span> (.e.g. <span class="code">C:\Program Files\SharpCap 4.1 (64 bit)\scripts\eclipse\</span>)</li>
+                <li>Generate a sequence</li>
+                <li>Download the <span class="code">april-2024-solar-eclipse-config.ps1</span> file and save it to the same directory in step 3 - <span class="code">{SHARPCAP_INSTALL_FOLDER}\scripts\eclipse\</span> (.e.g. <span class="code">C:\Program Files\SharpCap 4.1 (64 bit)\scripts\eclipse\</span>)</li>
+            </ol>
+            <p><em>Note: The Powershell script runs separately from the SharpCap Eclipse Sequencer script. Ending the SharpCap Eclipse Sequencer script will not terminate the Powershell script.</em></p>
+            <p><em>However, the Powershell script will terminate on its own about 5 seconds after the final scheduled audiable alert.</em></p>
         </div>
         <table id="wrapperTable"><tr style="vertical-align: top;"><td>
             <table class="params">
@@ -280,14 +296,24 @@
         </th></tr></table>
         <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span> before and after Totality.</h3><table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
         <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.</h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
-        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
+        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
         <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
+        <div id="generatePSConfigDiv" style="max-width: 45%; margin: 0 auto 30px; flex-direction: row;">
+            <input type="checkbox" value="powershell" id="generatePSConfig" />
+            <label for="generatePSConfig">Also generate Powershell config</label>
+        </div>
 
         <div class="planDiv" id="sequenceDiv" style="display: none;">
             <h3 class="headerBlock">Generated Sequence</h3>
             <input type="button" value="Copy Sequence to Clipboard" id="clipboardButton" style="margin: 15px 15px 0 15px; max-width: 45%;" onClick="copyToClipboard();" /><input type="button" value="Download SharpCap Sequence" id="downloadButton" style="max-width: 45%;" onClick="downloadSequence();" />
-            <textarea id="SharpCapSequence" style="width: 98%; height: 200px;" readonly="readonly"
+            <textarea id="SharpCapSequence" style="width: 98%; height: 200px; margin: 10px auto; display: block;" readonly="readonly"
             placeholder="SharpCap sequence will appear here."></textarea>
+        </div>
+        <div class="psPlanDiv" id="psConfigDiv" style="display: none;">
+            <h3 class="headerBlock">Generated Powershell Script Config</h3>
+            <input type="button" value="Copy Powershell Script Config to Clipboard" id="psClipboardButton" style="margin: 15px 15px 0 15px; max-width: 45%;" onClick="copyPSToClipboard();" /><input type="button" value="Download Powershell Script Config" id="psDownloadConfigButton" style="margin: 15px 15px 0 0; max-width: 45%;" onClick="downloadPSScriptConfig();" /><input type="button" value="Download Powershell Script & Assets" id="psDownloadButton2" style="margin: 15px 15px 0 0; max-width: 45%; float: right;" onClick="downloadPSScript();" />
+            <textarea id="PSScriptConfig" style="width: 98%; height: 200px; margin: 10px auto; display: block;" readonly="readonly"
+                      placeholder="Powershell script config will appear here."></textarea>
         </div>
     </div>
     <script type="text/javascript">
@@ -338,6 +364,7 @@
                         let pc=document.getElementById("partialCount").value;
                         if(pi==0 && pc==0) {
                             document.getElementById(t+"PlanDiv").style.display="none";
+                            document.getElementById( t + 'psPlanDiv' ).style.display = 'none';
                             document.getElementById("partial_begins").classList.remove("goodInput");
                             document.getElementById("partial_begins").classList.remove("badInput");
                             document.getElementById("partial_begins").classList.add("disabledInput");
@@ -348,6 +375,7 @@
                             document.getElementById("partial_ends").readonly="readonly";
                         } else {
                             document.getElementById(t+"PlanDiv").style.display="block";
+                            document.getElementById( t + 'psPlanDiv' ).style.display = 'block';
                             document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
                             if(document.getElementById(t+"Plan").rows.length==0)
                                 addPlanLine(t+"Plan");
@@ -358,12 +386,14 @@
                         }
                     } else {
                         document.getElementById(t+"PlanDiv").style.display="none";
+                        document.getElementById( t + 'psPlanDiv' ).style.display = 'none';
                     }
                 } else {
                     var phPost = "";
                     if(t.match("partial"))
                         document.getElementById(pmap[e.id]).value = 0;
                     document.getElementById(t+"PlanDiv").style.display="block";
+                    document.getElementById( t + 'psPlanDiv' ).style.display = 'block';
                     document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML + phPost;
                     if(document.getElementById(t+"Plan").rows.length==0)
                         addPlanLine(t+"Plan");
@@ -382,6 +412,7 @@
 
         function hideOutput() {
             document.getElementById("sequenceDiv").style.display = "none";
+            document.getElementById( 'psConfigDiv' ).style.display = 'none';
             saveState();
         }
 
@@ -463,8 +494,8 @@
         }
 
         function generateSharpCap() {
-            var now = new Date();
-            var preOutput = new Array(
+            var now = new Date(),
+                preOutput = [
                 "SEQUENCE",
                 "    # Generated by: ",
                 "    # linuxkidd's SharpCap Eclipse Sequencer",
@@ -479,7 +510,10 @@
                 "    # (C3) Full ends:      "+document.getElementById("full_ends").value,
                 "    # (C4) Partial ends:   "+document.getElementById("partial_ends").value,
                 "    #"
-                );
+                ],
+                SharpCapSequenceEl = document.getElementById( 'SharpCapSequence' ),
+                generatePSConfigEl = document.getElementById( 'generatePSConfig' );
+
             ["bailysInterval","partialCount","partialInterval","gain","offset","output", "profile"].forEach((a) => {
                 preOutput.push("    # "+a+": "+document.getElementById(a).value);
             });
@@ -519,6 +553,8 @@
             } catch(e) {
                 return;
             }
+
+            hideOutput();
 
             ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((p) => {
                 let e = document.getElementById(p);
@@ -603,8 +639,8 @@
                 addWaitSub('BailysOneStart',document.getElementById('full_begins').value,bailysInterval*-1);
 
             addWaitSub('TotalityStart',document.getElementById('full_begins').value,0);
-            output.push(`    PRESERVE CAMERA SETTINGS`);
-            output.push(`        UNLOCK CONTROLS`);
+            output.push("    PRESERVE CAMERA SETTINGS");
+            output.push("        UNLOCK CONTROLS");
             output.push("");
             indent=12;
 
@@ -750,18 +786,147 @@
             output.push(' '.repeat(indent)+"PLAY SOUND Alert");
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Solar Eclipse Collection is complete!" COLOUR Green DURATION 120');
 
-            output.push(`        END UNLOCK`);
-            output.push(`    END PRESERVE`);
+            output.push("        END UNLOCK");
+            output.push("    END PRESERVE");
             output.push("END SEQUENCE");
             preOutput.push("    #","    # ## End Sequence","    #","    #");
 
-            document.getElementById("SharpCapSequence").value = preOutput.join("\n") + "\n\n" + output.join("\n");
+            if ( generatePSConfigEl.checked ) {
+                preOutput.push( "", "    # Powershell Script", "    RUN PowerShell WITH PARAMS \"-NoProfile -ExecutionPolicy Bypass -Command \\\" & '.\\scripts\\eclipse\\april-2024-solar-eclipse.ps1'\\\"\" WAIT False" );
+
+                generatePSConfig();
+            }
+
+            SharpCapSequenceEl.value = preOutput.join("\n") + "\n\n" + output.join("\n");
+
+            // Start a new thread
+            setTimeout( function() {
+                SharpCapSequenceEl.scrollTop = 0;
+            }, 1 );
+
             document.getElementById("sequenceDiv").style.display = "block";
+
             window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function generatePSConfig() {
+            let PSScriptConfigEl = document.getElementById( 'PSScriptConfig' ),
+                config_output = [
+                    "############################",
+                    "# Configuration            #",
+                    "#                          #",
+                    "# Note: Local device times #",
+                    "############################"
+                ];
+
+            // Script Start
+            config_output.push( "" );
+            config_output.push( "# Script Start" );
+            config_output.push( "$script_start_time = '" + secondsToTime( timeToSeconds( document.getElementById( 'partial_begins' ).value ) - 65 ) + "'" );
+            config_output.push( "" );
+
+            // C1
+            let c1_alert_time_seconds = timeToSeconds( document.getElementById( 'partial_begins' ).value ),
+                c1_alert_time = secondsToTime( c1_alert_time_seconds );
+            config_output.push( "" );
+            config_output.push( "# C1 - " + c1_alert_time );
+            config_output.push( "$c1_alert_time = '" + c1_alert_time + "'" );
+            config_output.push( "$c1_sixty_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 60 ) );
+            config_output.push( "$c1_thirty_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 30 ) );
+            config_output.push( "$c1_twenty_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 20 ) );
+            config_output.push( "$c1_ten_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 10 ) );
+
+            config_output.push( "" );
+
+            // C2
+            let c2_alert_time_seconds = timeToSeconds( document.getElementById( 'full_begins' ).value ),
+                c2_alert_time = secondsToTime( c2_alert_time_seconds );
+            config_output.push( "" );
+            config_output.push( "# C2 - " + c2_alert_time );
+            config_output.push( "$c2_alert_time = '" + c2_alert_time + "'" );
+            config_output.push( "$c2_telescope_refocus_alert_time = (Get-Date $c2_alert_time).AddSeconds(-1500).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 1500 ) );
+            config_output.push( "$c2_venus_twenty_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-1200).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 1200 ) );
+            config_output.push( "$c2_venus_ten_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-600).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 600 ) );
+            config_output.push( "$c2_venus_five_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-300).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 300 ) );
+            config_output.push( "$c2_three_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-180).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 180 ) );
+            config_output.push( "$c2_two_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-120).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 120 ) );
+            config_output.push( "$c2_jupiter_ninty_seconds_alert_time = (Get-Date $c2_alert_time).AddSeconds(-90).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 90 ) );
+            config_output.push( "$c2_sixty_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 60 ) );
+            config_output.push( "$c2_remove_solar_filter_alert_time = (Get-Date $c2_alert_time).AddSeconds(-33).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 32 ) );
+            config_output.push( "$c2_thirty_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 30 ) );
+            config_output.push( "$c2_twenty_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 20 ) );
+            config_output.push( "$c2_ten_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 10 ) );
+            config_output.push( "$c2_diamond_ring_alert_time = (Get-Date $c2_alert_time).AddSeconds(-8).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 8 ) );
+            config_output.push( "$c2_bailys_beads_alert_time = (Get-Date $c2_alert_time).AddSeconds(-5).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 5 ) );
+            config_output.push( "" );
+
+            // Totality
+            let c3_alert_time_seconds = timeToSeconds( document.getElementById( 'full_ends' ).value ),
+                c3_alert_time = secondsToTime( c3_alert_time_seconds ),
+                totality_end_time_offset = ( c3_alert_time_seconds - c2_alert_time_seconds ),
+                maximum_eclipse_time = parseInt( ( ( c3_alert_time_seconds - c2_alert_time_seconds ) / 2 ), 10 );
+            config_output.push( "" );
+            config_output.push( "# Totality - " + c2_alert_time + " - " + c3_alert_time );
+            config_output.push( "$totality_start_alert_time = (Get-Date $c2_alert_time).AddSeconds(4).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 4 ) );
+            config_output.push( "$totality_first_observe_horizon_alert_time = (Get-Date $c2_alert_time).AddSeconds(20).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 20 ) );
+            config_output.push( "$totality_pons_brooks_alert_time = (Get-Date $c2_alert_time).AddSeconds(50).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 50 ) );
+            config_output.push( "$totality_maximum_eclipse_alert_time = (Get-Date $c2_alert_time).AddSeconds(" + maximum_eclipse_time + ").ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + maximum_eclipse_time ) );
+            config_output.push( "$totality_second_observe_horizon_alert_time = (Get-Date $c2_alert_time).AddSeconds(80).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 80 ) );
+            config_output.push( "" );
+
+            // C3
+            config_output.push( "" );
+            config_output.push( "# C3 - " + c3_alert_time );
+            config_output.push( "$c3_alert_time = '" + c3_alert_time + "'" );
+            config_output.push( "$c3_sixty_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 60 ) );
+            config_output.push( "$c3_thirty_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 30 ) );
+            config_output.push( "$c3_twenty_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 20 ) );
+            config_output.push( "$c3_ten_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 10 ) );
+            config_output.push( "$totality_end_alert_time = (Get-Date $c2_alert_time).AddSeconds(" + ( totality_end_time_offset - 4 ) + ").ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 4 ) );
+            config_output.push( "$c3_bailys_beads_alert_time = (Get-Date $c3_alert_time).AddSeconds(3).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 3 ) );
+            config_output.push( "$c3_diamond_ring_alert_time = (Get-Date $c3_alert_time).AddSeconds(6).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 6 ) );
+            config_output.push( "$c3_replace_solar_filter_alert_time = (Get-Date $c3_alert_time).AddSeconds(32).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 32 ) );
+            config_output.push( "$c3_jupiter_sixty_seconds_alert_time = (Get-Date $c3_alert_time).AddSeconds(60).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 60 ) );
+            config_output.push( "$c3_venus_five_minutes_alert_time = (Get-Date $c3_alert_time).AddSeconds(300).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 300 ) );
+            config_output.push( "$c3_venus_ten_minutes_alert_time = (Get-Date $c3_alert_time).AddSeconds(600).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 600 ) );
+            config_output.push( "$c3_venus_twenty_minutes_alert_time = (Get-Date $c3_alert_time).AddSeconds(1200).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 1200 ) );
+            config_output.push( "$c3_telescope_refocus_alert_time = (Get-Date $c3_alert_time).AddSeconds(1500).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 1500 ) );
+
+            config_output.push( "" );
+
+            // C4
+            let c4_alert_time_seconds = timeToSeconds( document.getElementById( 'partial_ends' ).value ),
+                c4_alert_time = secondsToTime( c4_alert_time_seconds );
+            config_output.push( "" );
+            config_output.push( "# C4 - " + c4_alert_time );
+            config_output.push( "$c4_alert_time = '" + c4_alert_time + "'" );
+            config_output.push( "$c4_sixty_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 60 ) );
+            config_output.push( "$c4_thirty_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 30 ) );
+            config_output.push( "$c4_twenty_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 20 ) );
+            config_output.push( "$c4_ten_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 10 ) );
+            config_output.push( "" );
+
+            // Script End
+            config_output.push( "" );
+            config_output.push( "# Script End" );
+            config_output.push( "$script_end_time = '" + secondsToTime( timeToSeconds( document.getElementById( 'partial_ends' ).value ) + 15 ) + "'" );
+
+            PSScriptConfigEl.value = config_output.join( "\n" );
+
+            // Start a new thread
+            setTimeout( function() {
+                PSScriptConfigEl.scrollTop = 0;
+            }, 1 );
+
+            document.getElementById( 'psConfigDiv' ).style.display = 'block';
         }
 
         function copyToClipboard() {
             navigator.clipboard.writeText(document.getElementById("SharpCapSequence").value);
+        }
+
+        function copyPSToClipboard() {
+            navigator.clipboard.writeText( document.getElementById( 'PSScriptConfig' ).value );
         }
 
         function downloadSequence() {
@@ -769,6 +934,37 @@
             var textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
             var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
             var fileNameToSaveAs = "SharpCap_Eclipse_Sequence.scs";
+
+            var downloadLink = document.createElement("a");
+            downloadLink.download = fileNameToSaveAs;
+            downloadLink.innerHTML = "Download File";
+            downloadLink.href = textToSaveAsURL;
+            downloadLink.onclick = destroyClickedElement;
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+
+            downloadLink.click();
+        }
+
+        function downloadPSScript() {
+            var fileNameToSaveAs = 'april-2024-solar-eclipse-powershell-script.zip';
+
+            var downloadLink = document.createElement( 'a' );
+            downloadLink.download = fileNameToSaveAs;
+            downloadLink.innerHTML = 'Download File';
+            downloadLink.href = 'scripts/powershell/april-2024-solar-eclipse-powershell-script.zip';
+            downloadLink.onclick = destroyClickedElement;
+            downloadLink.style.display = 'none';
+            document.body.appendChild( downloadLink );
+
+            downloadLink.click();
+        }
+
+        function downloadPSScriptConfig() {
+            var textToSave = document.getElementById("PSScriptConfig").value;
+            var textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
+            var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+            var fileNameToSaveAs = 'april-2024-solar-eclipse-config.ps1';
 
             var downloadLink = document.createElement("a");
             downloadLink.download = fileNameToSaveAs;
