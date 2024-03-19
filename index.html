@@ -667,7 +667,7 @@
                 output.push(' '.repeat(indent)+"GOSUB waitForBailysOneStart");
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPreEclipse"');
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
-                output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Remove the Solar Filter!" WAIT False')
+                // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Remove the Solar Filter!" WAIT False')
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+(totalityDuration+bailysInterval).toString());
                 preOutput.push("    # Collect 'bailysCollection' every "+document.getElementById("bailysDelay").value+" seconds, until "+document.getElementById('full_begins').value);
                 addCollection("bailysCollection",document.getElementById('full_begins').value,document.getElementById("bailysDelay").value);
@@ -685,7 +685,7 @@
             output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
             if(partialInterval==0 && partialCount==0 && bailysInterval==0) {
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
-                output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Remove the Solar Filter!" WAIT False')
+                // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Remove the Solar Filter!" WAIT False')
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+totalityDuration.toString());
             }
             output.push(' '.repeat(indent)+'TARGETNAME "FullEclipse"');
@@ -712,7 +712,7 @@
             output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value) + bailysInterval));
             indent+=4;
             output.push(' '.repeat(indent)+"PLAY SOUND Error");
-            output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 URGENT! ---- Apply the Solar Filter! ---- URGENT!" WAIT False')
+            // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 URGENT! ---- Apply the Solar Filter! ---- URGENT!" WAIT False')
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
             indent-=4;
             output.push(' '.repeat(indent)+"END IF");
@@ -751,7 +751,7 @@
                 }
             }
             output.push(' '.repeat(indent)+"PLAY SOUND Alert");
-            output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Solar Eclipse Collection is Complete!" WAIT False')
+            // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Solar Eclipse Collection is Complete!" WAIT False')
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Solar Eclipse Collection is complete!" COLOUR Green DURATION 120');
 
             output.push(`        END UNLOCK`);
