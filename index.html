@@ -12,9 +12,12 @@
         color: blue;
     }
 
-    h3 {
-        text-align: left;
-        padding-left: 15px;
+    #headerDiv {
+        margin-bottom: 1em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row;
     }
 
     #bodyWrapper {
@@ -115,11 +118,15 @@
         max-width: 80%;
     }
 
+    table.params {
+        margin: 10px auto;
+    }
+
     .params {
         border: 1px solid;
     }
 
-    .planDiv {
+    .planDiv, .psPlanDiv {
         border: 1px solid;
         margin: 10px auto;
         min-width: 1000px;
@@ -158,7 +165,10 @@
         <h1>
           SharpCap Eclipse Sequence Creator
         </h1>
-        <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11947 or newer!</h3>
+        <div id="headerDiv">
+            <h3>Requires <a href="https://www.sharpcap.co.uk/">SharpCap Pro</a> version 4.1.11947 or newer!</h3>
+            <input type="button" value="Download REQUIRED Powershell Companion Script" id="psDownloadButton" style="max-width: 45%;" onClick="downloadPSScript();" />
+        </div>
         <ul class="topMenu">
             <li><a id="MenuNotes" href="javascript://" onClick="toggleDiv(this);" class='active'>Notes</a></li>
             <li><a id="MenuInstructions" href="javascript://" onClick="toggleDiv(this);">Instructions</a></li>
@@ -189,9 +199,9 @@
                 <li>Note the <i>Partial</i> and <i>Full</i> <i>Begin</i> and <i>End</i> times provided on the left side of the map.</li>
                 <li>Enter the observing site local times under <span class="code">Eclipse Times</span> below, in 24 hour, HH:MM:SS format.</li>
                 <li>Adjust the <span class="code">Intervals</span> and <span class="code">Camera Settings</span> as desired below.<br />
-                    <b>Notes:</b>
+                    <em>Notes:</em>
                     <ul>
-                        <li><span class="code">Partial Eclipse Count</span> <b>(recommended)</b> generates evenly spaced collections based on partial eclipse percentage, starting 1 minutes into the eclipse.</li>
+                        <li><span class="code">Partial Eclipse Count</span> <em>(recommended)</em> generates evenly spaced collections based on partial eclipse percentage, starting 1 minutes into the eclipse.</li>
                         <li><span class="code">Partial Eclipse Interval</span> generates evenly space collections based on time alone, with no concern for even partial percentage.</li>
                         <li><b>The two cannot be used at the same time.</b></li>
                     </ul>
@@ -210,6 +220,15 @@
                 </li>
                 <li>Monitor for an Alert sound, and banner at the top to Remove or Apply the Solar Filter around the time of Totality.</li>
             </ol>
+
+            <h4><em>Optional:</em> Download the Powershell script and assets</h4>
+            <ol>
+                <li>Download Powershell script <a href="javascript://" onClick="downloadPSScript();">april-2024-solar-eclipse.ps1</a></li>
+                <li>Copy the script to <span class="code">{SHARPCAP_INSTALL_FOLDER}\scripts\eclipse\</span> (.e.g. <span class="code">C:\Program Files\SharpCap 4.1 (64 bit)\scripts\eclipse\</span>)</li>
+                <li>Generate a sequence</li>
+            </ol>
+            <p><em>Note: The Powershell script runs separately from the SharpCap Eclipse Sequencer script. Ending the SharpCap Eclipse Sequencer script will not terminate the Powershell script.</em></p>
+            <p><em>However, the Powershell script will terminate on its own about 5 seconds after the final scheduled audiable alert.</em></p>
         </div>
         <table id="wrapperTable"><tr style="vertical-align: top;"><td>
             <table class="params">
@@ -262,6 +281,28 @@
                         </select><input type='hidden' id='totalityInterval' value='1'/>
                     </td></tr>
                 </table>
+
+                <table class="params">
+                    <tr><th colspan="2" class="headerBlock">Powershell Script Config</th></tr>
+                    <tr>
+                        <td class="label"><label for="generatePSConfig">Generate Powershell Script Config</label></td>
+                        <td>
+                            <select id="generatePSConfig" onChange="checkPSConfigOptions();">
+                                <option value="Yes" selected="selected">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label"><label for="psConfigOptionNotifications">Display Windows Notifications</label></td>
+                        <td>
+                            <select id="psConfigOptionNotifications" class="psConfigOption" onChange="hideOutput();">
+                                <option value="Yes" selected="selected">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
             </td><td>
             <table class="params">
                 <th colspan="2" class="headerBlock">Camera Settings</th>
@@ -280,17 +321,20 @@
         </th></tr></table>
         <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span> before and after Totality.</h3><table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
         <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.</h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
-        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
+        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
         <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
 
         <div class="planDiv" id="sequenceDiv" style="display: none;">
             <h3 class="headerBlock">Generated Sequence</h3>
-            <input type="button" value="Copy Sequence to Clipboard" id="clipboardButton" style="margin: 15px 15px 0 15px; max-width: 45%;" onClick="copyToClipboard();" /><input type="button" value="Download SharpCap Sequence" id="downloadButton" style="max-width: 45%;" onClick="downloadSequence();" />
-            <textarea id="SharpCapSequence" style="width: 98%; height: 200px;" readonly="readonly"
+            <input type="button" value="Copy Sequence to Clipboard" id="clipboardButton" style="margin: 15px 15px 0 15px; max-width: 45%;" onClick="copyToClipboard();" /><input type="button" value="Download SharpCap Sequence" id="downloadButton" style="max-width: 45%;" onClick="downloadSequence();" /><input type="button" value="Download REQUIRED Powershell Companion Script" id="psDownloadButton2" style="margin: 15px 15px 0 0; max-width: 45%; float: right;" onClick="downloadPSScript();" />
+            <textarea id="SharpCapSequence" style="width: 98%; height: 200px; margin: 10px auto; display: block;" readonly="readonly"
             placeholder="SharpCap sequence will appear here."></textarea>
         </div>
     </div>
     <script type="text/javascript">
+        window.onerror = function (message,url,line,col,error) {
+            console.log("FAILURE: "+message+"\n"+url+"\nLine: "+line+"\ncolumn: "+col+"\n"+error);
+        }
         function uuidv4() {
             return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
                 (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -331,52 +375,50 @@
             let pmap = { "partialCount": "partialInterval", "partialInterval": "partialCount" };
             let e = document.getElementById(t);
             t = t.replace(/[A-Z].*$/,"");
-            try {
-                if(e.value==0) {
-                    if(t.match("partial")) {
-                        let pi=document.getElementById("partialInterval").value;
-                        let pc=document.getElementById("partialCount").value;
-                        if(pi==0 && pc==0) {
-                            document.getElementById(t+"PlanDiv").style.display="none";
-                            document.getElementById("partial_begins").classList.remove("goodInput");
-                            document.getElementById("partial_begins").classList.remove("badInput");
-                            document.getElementById("partial_begins").classList.add("disabledInput");
-                            document.getElementById("partial_begins").readonly="readonly";
-                            document.getElementById("partial_ends").classList.remove("goodInput");
-                            document.getElementById("partial_ends").classList.remove("badInput");
-                            document.getElementById("partial_ends").classList.add("disabledInput");
-                            document.getElementById("partial_ends").readonly="readonly";
-                        } else {
-                            document.getElementById(t+"PlanDiv").style.display="block";
-                            document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
-                            if(document.getElementById(t+"Plan").rows.length==0)
-                                addPlanLine(t+"Plan");
-                            document.getElementById("partial_begins").removeAttribute('readonly');
-                            document.getElementById("partial_ends").removeAttribute('readonly');
-                            verifyTime(document.getElementById("partial_begins"));
-                            verifyTime(document.getElementById("partial_ends"));
-                        }
+            if(e.value==0) {
+                if(t.match("partial")) {
+                    let pi=document.getElementById("partialInterval").value;
+                    let pc=document.getElementById("partialCount").value;
+                    if(pi==0 && pc==0) {
+                        document.getElementById( t + "PlanDiv" ).style.display="none";
+                        document.getElementById("partial_begins").classList.remove("goodInput");
+                        document.getElementById("partial_begins").classList.remove("badInput");
+                        document.getElementById("partial_begins").classList.add("disabledInput");
+                        document.getElementById("partial_begins").readonly="readonly";
+                        document.getElementById("partial_ends").classList.remove("goodInput");
+                        document.getElementById("partial_ends").classList.remove("badInput");
+                        document.getElementById("partial_ends").classList.add("disabledInput");
+                        document.getElementById("partial_ends").readonly="readonly";
                     } else {
-                        document.getElementById(t+"PlanDiv").style.display="none";
-                    }
-                } else {
-                    var phPost = "";
-                    if(t.match("partial"))
-                        document.getElementById(pmap[e.id]).value = 0;
-                    document.getElementById(t+"PlanDiv").style.display="block";
-                    document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML + phPost;
-                    if(document.getElementById(t+"Plan").rows.length==0)
-                        addPlanLine(t+"Plan");
-                    if(t=="partial") {
+                        document.getElementById( t + "PlanDiv" ).style.display="block";
+                        document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
+                        if(document.getElementById(t+"Plan").rows.length==0)
+                            addPlanLine(t+"Plan");
                         document.getElementById("partial_begins").removeAttribute('readonly');
                         document.getElementById("partial_ends").removeAttribute('readonly');
                         verifyTime(document.getElementById("partial_begins"));
                         verifyTime(document.getElementById("partial_ends"));
                     }
+                } else {
+                    document.getElementById(t+"PlanDiv").style.display="none";
                 }
-            } catch(err) {
-                console.log("Err: "+t+" :: "+err);
+            } else {
+                if(t.match("partial"))
+                    document.getElementById(pmap[e.id]).value = 0;
+                document.getElementById(t+"PlanDiv").style.display="block";
+                document.getElementById(t+"PlanHeader").innerHTML = e.options[e.selectedIndex].innerHTML;
+                if(document.getElementById(t+"Plan").rows.length==0)
+                    addPlanLine(t+"Plan");
+                if(t=="partial") {
+                    document.getElementById("partial_begins").removeAttribute('readonly');
+                    document.getElementById("partial_ends").removeAttribute('readonly');
+                    document.getElementById("partial_begins").classList.remove('disabledInput');
+                    document.getElementById("partial_ends").classList.remove('disabledInput');
+                    verifyTime(document.getElementById("partial_begins"));
+                    verifyTime(document.getElementById("partial_ends"));
+                }
             }
+
             hideOutput();
         }
 
@@ -387,16 +429,16 @@
 
         function verifyTime(t) {
             hideOutput();
-            let v=/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(t.value);
-            if(v) {
-                t.classList.add("goodInput");
-                t.classList.remove("badInput");
-                t.classList.remove("disabledInput");
-                saveState();
-            } else {
-                t.classList.remove("goodInput");
-                t.classList.add("badInput");
-                t.classList.remove("disabledInput");
+            if(!(t.classList.contains("disabledInput"))) {
+                let v = timeRegEx.test(t.value);
+                if(v) {
+                    t.classList.add("goodInput");
+                    t.classList.remove("badInput");
+                    saveState();
+                } else {
+                    t.classList.remove("goodInput");
+                    t.classList.add("badInput");
+                }
             }
         }
 
@@ -463,8 +505,33 @@
         }
 
         function generateSharpCap() {
-            var now = new Date();
-            var preOutput = new Array(
+            const partialInterval = parseInt(document.getElementById("partialInterval").value),
+                partialCount = parseInt(document.getElementById("partialCount").value),
+                bailysInterval = parseInt(document.getElementById("bailysInterval").value);
+            try {
+                if(partialInterval>0 || partialCount>0) {
+                    ["partial_begins", "partial_ends"].forEach((t) => {
+                        let v = timeRegEx.test(document.getElementById(t).value);
+                        if(document.getElementById(t).value=="" || !v) {
+                            alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
+                            throw BreakException;
+                        }
+                    });
+                }
+                ["full_begins", "full_ends"].forEach((t) => {
+                    let v = timeRegEx.test(document.getElementById(t).value);
+                    if(document.getElementById(t).value=="" || !v) {
+                        alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
+                        throw BreakException;
+                    }
+                });
+            } catch(e) {
+                console.log("Error, missing / invalid parameters.\n"+e);
+                return;
+            }
+
+            var now = new Date(),
+                preOutput = [
                 "SEQUENCE",
                 "    # Generated by: ",
                 "    # linuxkidd's SharpCap Eclipse Sequencer",
@@ -479,46 +546,37 @@
                 "    # (C3) Full ends:      "+document.getElementById("full_ends").value,
                 "    # (C4) Partial ends:   "+document.getElementById("partial_ends").value,
                 "    #"
-                );
-            ["bailysInterval","partialCount","partialInterval","gain","offset","output", "profile"].forEach((a) => {
+                ],
+                SharpCapSequenceEl = document.getElementById( 'SharpCapSequence' ),
+                generatePSConfigEl = document.getElementById( 'generatePSConfig' );
+
+            ["bailysInterval","partialCount","partialInterval","gain","offset","output","profile","generatePSConfig","psConfigOptionNotifications"].forEach((a) => {
                 preOutput.push("    # "+a+": "+document.getElementById(a).value);
             });
             preOutput.push("    #","    #");
             var output = new Array();
             var indent = 4;
-            let partialInterval = parseInt(document.getElementById("partialInterval").value);
-            let partialCount = parseInt(document.getElementById("partialCount").value);
-            let bailysInterval = parseInt(document.getElementById("bailysInterval").value);
-            let totalityDuration = timeToSeconds(document.getElementById("full_ends").value) - timeToSeconds(document.getElementById("full_begins").value);
+
+            const c1 = document.getElementById("partial_begins").value,
+                c2 = document.getElementById("full_begins").value,
+                c3 = document.getElementById("full_ends").value,
+                c4 = document.getElementById("partial_ends").value,
+                c1_seconds = timeToSeconds(c1),
+                c2_seconds = timeToSeconds(c2),
+                c3_seconds = timeToSeconds(c3),
+                c4_seconds = timeToSeconds(c4),
+                totalityDuration = c3_seconds - c2_seconds;
             var preInterval = partialInterval;
             var postInterval = partialInterval;
             if(partialCount>0) {
-                let preDuration = timeToSeconds(document.getElementById("full_begins").value) - timeToSeconds(document.getElementById("partial_begins").value) - bailysInterval - 120;
-                let postDuration = timeToSeconds(document.getElementById("partial_ends").value) - timeToSeconds(document.getElementById("full_ends").value) - bailysInterval - 120;
-                preInterval = preDuration / partialCount;
+                const
+                    preDuration = c2_seconds - c1_seconds - bailysInterval - 120,
+                    postDuration = c4_seconds - c3_seconds - bailysInterval - 120;
+                preInterval = preDuration / partialCount,
                 postInterval = postDuration / partialCount;
             }
 
-            try {
-                if(partialInterval>0 || partialCount>0) {
-                    ["partial_begins", "partial_ends"].forEach((t) => {
-                        let v = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(document.getElementById(t).value);
-                        if(document.getElementById(t).value=="" || !v) {
-                            alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
-                            throw BreakException;
-                        }
-                    });
-                }
-                ["full_begins", "full_ends"].forEach((t) => {
-                    let v = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/.test(document.getElementById(t).value);
-                    if(document.getElementById(t).value=="" || !v) {
-                        alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
-                        throw BreakException;
-                    }
-                });
-            } catch(e) {
-                return;
-            }
+            hideOutput();
 
             ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((p) => {
                 let e = document.getElementById(p);
@@ -590,21 +648,21 @@
 
             var esOffset=0;
             if(partialInterval>0 || partialCount>0 ) {
-                addWaitSub('PreEclipseStart',document.getElementById('partial_begins').value,-60);
+                addWaitSub('PreEclipseStart',c1,-60);
                 if(partialCount > 0)
                     esOffset=60;
-                addWaitSub('EclipseStart',document.getElementById('partial_begins').value,esOffset);
+                addWaitSub('EclipseStart', c1, esOffset);
 
-                addWaitSub('PostTotalityPartialStart',document.getElementById('full_ends').value,bailysInterval + 60);
-                addWaitSub('EclipseEnd',document.getElementById('partial_ends').value,esOffset * -1);
-                addWaitSub('PostEclipseEnd',document.getElementById('partial_ends').value,60);
+                addWaitSub('PostTotalityPartialStart', c3, bailysInterval + 60);
+                addWaitSub('EclipseEnd', c4, esOffset * -1);
+                addWaitSub('PostEclipseEnd', c4, 60);
             }
             if(bailysInterval>0)
-                addWaitSub('BailysOneStart',document.getElementById('full_begins').value,bailysInterval*-1);
+                addWaitSub('BailysOneStart', c2, bailysInterval * -1);
 
-            addWaitSub('TotalityStart',document.getElementById('full_begins').value,0);
-            output.push(`    PRESERVE CAMERA SETTINGS`);
-            output.push(`        UNLOCK CONTROLS`);
+            addWaitSub('TotalityStart',c2,0);
+            output.push("    PRESERVE CAMERA SETTINGS");
+            output.push("        UNLOCK CONTROLS");
             output.push("");
             indent=12;
 
@@ -631,7 +689,7 @@
             if(partialInterval>0 || partialCount>0) {
                 if(partialCount > 0) {
                     esOffset = 60;
-                    startTime = secondsToTime(timeToSeconds(document.getElementById('partial_begins').value) - esOffset);
+                    startTime = secondsToTime(c1_seconds - esOffset);
                     preOutput.push("    # Wait until "+startTime);
                     preOutput.push("    # Capture one iteration of 'partialCollection'");
 
@@ -643,8 +701,8 @@
                     output.push(' '.repeat(indent)+"END IF");
                     output.push("")
                 }
-                startTime = secondsToTime(timeToSeconds(document.getElementById('partial_begins').value) + esOffset);
-                stopTime = secondsToTime(timeToSeconds(document.getElementById('full_begins').value) - bailysInterval - 60); // Add in 60 second buffer before next step
+                startTime = secondsToTime(c1_seconds + esOffset);
+                stopTime = secondsToTime(c2_seconds - bailysInterval - 60); // Add in 60 second buffer before next step
                 preOutput.push("    #","    # Wait until "+startTime);
                 output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
                 indent+=4;
@@ -659,7 +717,7 @@
              * BEGIN Baily's @ C2 SEQUENCE
              */
              if(bailysInterval>0) {
-                startTime = secondsToTime(timeToSeconds(document.getElementById('full_begins').value)-bailysInterval);
+                startTime = secondsToTime(c2_seconds - bailysInterval);
                 stopTime = document.getElementById('full_begins').value;
                 preOutput.push("    #","    # Wait until "+startTime);
                 output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
@@ -667,10 +725,9 @@
                 output.push(' '.repeat(indent)+"GOSUB waitForBailysOneStart");
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPreEclipse"');
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
-                // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Remove the Solar Filter!" WAIT False')
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+(totalityDuration+bailysInterval).toString());
                 preOutput.push("    # Collect 'bailysCollection' every "+document.getElementById("bailysDelay").value+" seconds, until "+document.getElementById('full_begins').value);
-                addCollection("bailysCollection",document.getElementById('full_begins').value,document.getElementById("bailysDelay").value);
+                addCollection("bailysCollection",c2,document.getElementById("bailysDelay").value);
                 indent-=4;
                 output.push(' '.repeat(indent)+"END IF");
                 output.push("");
@@ -678,19 +735,18 @@
             /* 
              * BEGIN Totality @ C2 SEQUENCE
              */
-            stopTime = document.getElementById("full_ends").value;
+            stopTime = c3;
             output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
             indent+=4;
-            preOutput.push("    #","    # Wait until "+document.getElementById('full_begins').value);
+            preOutput.push("    #","    # Wait until "+c2);
             output.push(' '.repeat(indent)+"GOSUB waitForTotalityStart");
             if(partialInterval==0 && partialCount==0 && bailysInterval==0) {
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
-                // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Remove the Solar Filter!" WAIT False')
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+totalityDuration.toString());
             }
             output.push(' '.repeat(indent)+'TARGETNAME "FullEclipse"');
             preOutput.push("    # Collect 'totalityCollection' every "+document.getElementById("totalityDelay").value+" seconds, until "+document.getElementById('full_ends').value);
-            addCollection("totalityCollection",document.getElementById("full_ends").value,document.getElementById("totalityDelay").value);
+            addCollection("totalityCollection",c3,document.getElementById("totalityDelay").value);
             indent-=4;
             output.push(' '.repeat(indent)+"END IF");
             output.push("");
@@ -698,7 +754,7 @@
              * BEGIN Baily's @ C3 SEQUENCE
              */
             if(bailysInterval>0) {
-                stopTime = secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval);
+                stopTime = secondsToTime(c3_seconds + bailysInterval);
                 output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
                 indent+=4;
                 preOutput.push("    #","    # Collect 'bailysCollection' every "+document.getElementById("bailysDelay").value+" seconds, until "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval));
@@ -709,10 +765,9 @@
                 output.push("");
             }
 
-            output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value) + bailysInterval));
+            output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME " + secondsToTime(c3_seconds + bailysInterval));
             indent+=4;
             output.push(' '.repeat(indent)+"PLAY SOUND Error");
-            // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 URGENT! ---- Apply the Solar Filter! ---- URGENT!" WAIT False')
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "URGENT!   Apply the Solar Filter!   URGNET!" COLOUR Red DURATION 120');
             indent-=4;
             output.push(' '.repeat(indent)+"END IF");
@@ -722,8 +777,8 @@
              * BEGIN Partial @ C3 SEQUENCE
              */
              if(partialInterval>0 || partialCount>0) {
-                startTime = secondsToTime(timeToSeconds(document.getElementById('full_ends').value) + bailysInterval + 60);
-                stopTime = secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) - esOffset);
+                startTime = secondsToTime(c3_seconds + bailysInterval + 60);
+                stopTime = secondsToTime(c4_seconds - esOffset);
                 preOutput.push("    #","    # Wait until " + startTime);
                 output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME " + stopTime);
                 indent+=4;
@@ -737,11 +792,10 @@
 
                 if(partialCount > 0) {
                     esOffset = 60;
-                    startTime = secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) + esOffset);
-                    stopTime = secondsToTime(timeToSeconds(document.getElementById('partial_ends').value) + esOffset);
+                    startTime = secondsToTime(c4_seconds + esOffset);
                     preOutput.push("    #","    # Wait until " + startTime);
                     preOutput.push("    # Capture one iteration of 'partialCollection'");
-                    output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME " + stopTime);
+                    output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME " + startTime);
                     indent+=4;
                     output.push(' '.repeat(indent)+"GOSUB waitForPostEclipseEnd");
                     output.push(' '.repeat(indent)+"GOSUB partialCollection");
@@ -751,17 +805,63 @@
                 }
             }
             output.push(' '.repeat(indent)+"PLAY SOUND Alert");
-            // output.push(' '.repeat(indent)+'RUN C:\\Windows\\System32\\msg.exe WITH PARAMS "* /time:30 Solar Eclipse Collection is Complete!" WAIT False')
             output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Solar Eclipse Collection is complete!" COLOUR Green DURATION 120');
 
-            output.push(`        END UNLOCK`);
-            output.push(`    END PRESERVE`);
+            output.push("        END UNLOCK");
+            output.push("    END PRESERVE");
             output.push("END SEQUENCE");
             preOutput.push("    #","    # ## End Sequence","    #","    #");
 
-            document.getElementById("SharpCapSequence").value = preOutput.join("\n") + "\n\n" + output.join("\n");
+            if ( generatePSConfigEl.value === 'Yes' ) {
+                let psConfigOptionNotificationsEl = document.getElementById( 'psConfigOptionNotifications' ),
+                    displayWindowsNotifications = ( psConfigOptionNotificationsEl.value === 'Yes' ) ? '$true' : '$false',
+                    psParams = "-display_windows_notifications " + displayWindowsNotifications;
+                if ( c1 != "" )
+                    psParams += " -c1 "+c1;
+                psParams += " -c2 " + c2 + " -c3 " + c3
+                if ( c4 != "" )
+                    psParams += " -c4 "+c4;
+
+                preOutput.push("", "    # Powershell Script", "    RUN PowerShell WITH PARAMS \"-NoProfile -ExecutionPolicy Bypass -WindowStyle Minimized -Command .\\scripts\\eclipse\\april-2024-solar-eclipse.ps1 "+psParams+"\" WAIT False" );
+
+            }
+
+            SharpCapSequenceEl.value = preOutput.join("\n") + "\n\n" + output.join("\n");
+
+            // Start a new thread
+            /*
+            setTimeout( function() {
+                SharpCapSequenceEl.scrollTop = 0;
+            }, 1 );
+            */
+
             document.getElementById("sequenceDiv").style.display = "block";
+
             window.scrollTo(0, document.body.scrollHeight);
+        }
+
+
+        function checkPSConfigOptions() {
+            let generatePSConfigEl = document.getElementById( 'generatePSConfig' ),
+                shouldGeneratePSConfig = ( generatePSConfigEl.value === 'Yes' ),
+                disablePSConfigOptionEls = ( ! shouldGeneratePSConfig ),
+                psConfigOptionEls = document.querySelectorAll( '.psConfigOption' );
+
+            psConfigOptionEls.forEach( async function( el ) {
+                el.disabled = ( disablePSConfigOptionEls );
+
+                if ( disablePSConfigOptionEls ) {
+                    el.setAttribute( 'disabled', ( ! shouldGeneratePSConfig ) ? 'disabled' : '' );
+                    document.getElementById("psDownloadButton").style.display = "none";
+                }
+                else {
+                    el.removeAttribute( 'disabled' );
+                    document.getElementById("psDownloadButton").style.display = "inline-block";
+                }
+            } );
+
+
+            hideOutput();
         }
 
         function copyToClipboard() {
@@ -769,26 +869,27 @@
         }
 
         function downloadSequence() {
-            var textToSave = document.getElementById("SharpCapSequence").value;
-            var textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
-            var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
-            var fileNameToSaveAs = "SharpCap_Eclipse_Sequence.scs";
-
-            var downloadLink = document.createElement("a");
-            downloadLink.download = fileNameToSaveAs;
-            downloadLink.innerHTML = "Download File";
-            downloadLink.href = textToSaveAsURL;
-            downloadLink.onclick = destroyClickedElement;
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-
-            downloadLink.click();
+            downloadFile('SharpCap_Eclipse_Sequence.scs',document.getElementById("SharpCapSequence").value);
         }
 
-        function destroyClickedElement(event) {
-            document.body.removeChild(event.target);
+        function downloadPSScript() {
+            fetch('scripts/powershell/april-2024-solar-eclipse.ps1')
+            .then(response => response.text())
+            .then((data) => {
+                downloadFile('april-2024-solar-eclipse.ps1',data);
+            })
         }
 
+        function downloadFile(filename,text) {
+            var element = document.createElement('a');
+            element.setAttribute('href',
+                'data:text/plain;charset=utf-8, '
+                + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
 
         function parseSavedParams(params) {
             for( const [k,v] of Object.entries(params) ) {
@@ -799,7 +900,6 @@
                 }
             }
         }
-
 
         function parseSavedPlans(plans) {
             for( const [p,rows] of Object.entries(plans) ) {
@@ -867,7 +967,11 @@
             else
                 var params = {};
 
-            ["partial_begins", "partial_ends","full_begins", "full_ends","bailysInterval","partialInterval", "partialCount","gain","offset","output","profile","bailysDelay","totalityDelay"].forEach((a) => {
+            ["partial_begins", "partial_ends","full_begins", "full_ends",
+             "bailysInterval","partialInterval", "partialCount",
+             "gain","offset","output","profile",
+             "bailysDelay","totalityDelay",
+             "generatePSConfig","psConfigOptionNotifications"].forEach((a) => {
                 params[a]=document.getElementById(a).value;
                 if(hashMode) {
                         params.push(a+'='+document.getElementById(a).value)
@@ -896,6 +1000,7 @@
                 parseSavedPlans(JSON.parse(ls.getItem('plans')));
         }
 
+        const timeRegEx = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/;
         readURL();
         loadState();
 
@@ -904,6 +1009,7 @@
         checkVisible("partialInterval");
         checkVisible("partialCount");
         checkVisible("bailysInterval");
+        checkPSConfigOptions();
         setTimeout(function() {["partial_begins","full_begins","full_ends","partial_ends"].forEach((t) => verifyTime(document.getElementById(t)));},500);
         
     </script>
