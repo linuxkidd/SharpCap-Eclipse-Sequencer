@@ -298,9 +298,40 @@
         <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.</h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
         <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
         <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
+
         <div id="generatePSConfigDiv" style="max-width: 45%; margin: 0 auto 30px; flex-direction: row;">
-            <input type="checkbox" value="powershell" id="generatePSConfig" />
-            <label for="generatePSConfig">Also generate Powershell config</label>
+            <table class="params">
+                <tr><th colspan="2" class="headerBlock">Powershell Script Config</th></tr>
+                <tr>
+                    <td class="label"><label for="generatePSConfig">Generate Powershell Script Config</label></td>
+                    <td>
+                        <select id="generatePSConfig" onChange="checkPSConfigOptions();">
+                            <option value="Yes" selected="selected">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label"><label for="psConfigOptionNotifications">Display Windows Notifications</label></td>
+                    <td>
+                        <select id="psConfigOptionNotifications" class="psConfigOption" onChange="hideOutput();">
+                            <option value="Yes" selected="selected">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label"><label for="psConfigOptionSoundType">Sound Type</label></td>
+                    <td>
+                        <select id="psConfigOptionSoundType" class="psConfigOption" onChange="hideOutput();">
+                            <option value="TTS" selected="selected">Text-to-Speech (TTS)</option>
+                            <option value="WAV">WAV Files</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+
         </div>
 
         <div class="planDiv" id="sequenceDiv" style="display: none;">
@@ -791,8 +822,8 @@
             output.push("END SEQUENCE");
             preOutput.push("    #","    # ## End Sequence","    #","    #");
 
-            if ( generatePSConfigEl.checked ) {
-                preOutput.push( "", "    # Powershell Script", "    RUN PowerShell WITH PARAMS \"-NoProfile -ExecutionPolicy Bypass -Command \\\" & '.\\scripts\\eclipse\\april-2024-solar-eclipse.ps1'\\\"\" WAIT False" );
+            if ( generatePSConfigEl.value === 'Yes' ) {
+                preOutput.push( "", "    # Powershell Script", "    RUN PowerShell WITH PARAMS \"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command \\\" & '.\\scripts\\eclipse\\april-2024-solar-eclipse.ps1'\\\"\" WAIT False" );
 
                 generatePSConfig();
             }
@@ -809,18 +840,500 @@
             window.scrollTo(0, document.body.scrollHeight);
         }
 
+
+        function checkPSConfigOptions() {
+            let generatePSConfigEl = document.getElementById( 'generatePSConfig' ),
+                shouldGeneratePSConfig = ( generatePSConfigEl.value === 'Yes' ),
+                disablePSConfigOptionEls = ( ! shouldGeneratePSConfig ),
+                psConfigOptionEls = document.querySelectorAll( '.psConfigOption' );
+
+            psConfigOptionEls.forEach( async function( el ) {
+                el.disabled = ( disablePSConfigOptionEls );
+
+                if ( disablePSConfigOptionEls ) {
+                    el.setAttribute( 'disabled', ( ! shouldGeneratePSConfig ) ? 'disabled' : '' );
+                }
+                else {
+                    el.removeAttribute( 'disabled' );
+                }
+            } );
+
+
+            hideOutput();
+        }
+
         function generatePSConfig() {
             let PSScriptConfigEl = document.getElementById( 'PSScriptConfig' ),
+                psConfigOptionNotificationsEl = document.getElementById( 'psConfigOptionNotifications' ),
+                displayWindowsNotifications = ( psConfigOptionNotificationsEl.value === 'Yes' ) ? '$true' : '$false',
+                psConfigOptionSoundTypeEl = document.getElementById( 'psConfigOptionSoundType' ),
+                useTTS = ( psConfigOptionSoundTypeEl.value === 'TTS' ) ? '$true' : '$false',
                 config_output = [
-                    "############################",
-                    "# Configuration            #",
-                    "#                          #",
-                    "# Note: Local device times #",
-                    "############################"
+                    "#################",
+                    "# Configuration #",
+                    "#################"
                 ];
 
-            // Script Start
+            // Global
             config_output.push( "" );
+            config_output.push( "##" );
+            config_output.push( "# Global" );
+            config_output.push( "#" );
+            config_output.push( "" );
+
+            // Windows Notifications
+            config_output.push( "# Windows Notifications" );
+            config_output.push( "$display_windows_notifications = " + displayWindowsNotifications );
+            config_output.push( "" );
+
+            // Use TTS
+            config_output.push( "# TTS" );
+            config_output.push( "$use_tts = " + useTTS );
+            config_output.push( "" );
+
+
+            // Sounds, Text-to-Speech (TTS), and Notifications
+            config_output.push( "" );
+            config_output.push( "##" );
+            config_output.push( "# Sounds, Text-to-Speech (TTS), and Notifications" );
+            config_output.push( "#" );
+            config_output.push( "" );
+
+            // Initialize
+            config_output.push( "# Initialize" );
+            config_output.push( "$initialize_sound_path = '.\\scripts\\eclipse\\sounds\\00-Initialized.wav'" );
+            config_output.push( "$initialize_tts_text = 'The SharpCap eclipse script has been initialized and is waiting to start'" );
+            config_output.push( "$initialize_notification_title = 'SharpCap Script - Initialized'" );
+            config_output.push( "$initialize_notification_text = 'The SharpCap eclipse script is waiting to start'" );
+            config_output.push( "$initialize_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // Script Start
+            config_output.push( "# Script Start" );
+            config_output.push( "$script_start_sound_path = '.\\scripts\\eclipse\\sounds\\01-Eclipse-Start.wav'" );
+            config_output.push( "$script_start_tts_text = 'The SharpCap eclipse script has started'" );
+            config_output.push( "$script_start_notification_title = 'SharpCap Script - Started'" );
+            config_output.push( "$script_start_notification_text = 'The SharpCap eclipse script has started'" );
+            config_output.push( "$script_start_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C1 - 60 Seconds Prior
+            config_output.push( "# C1 - 60 Seconds Prior" );
+            config_output.push( "$c1_sixty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\02-First-Contact-60-Seconds.wav'" );
+            config_output.push( "$c1_sixty_seconds_prior_alert_tts_text = 'First contact is in 60 seconds'" );
+            config_output.push( "$c1_sixty_seconds_prior_alert_notification_title = 'First Contact In 60 Seconds'" );
+            config_output.push( "$c1_sixty_seconds_prior_alert_notification_text = 'First contact is in 60 seconds'" );
+            config_output.push( "$c1_sixty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C1 - 30 Seconds Prior
+            config_output.push( "# C1 - 30 Seconds Prior" );
+            config_output.push( "$c1_thirty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-30-Seconds.wav'" );
+            config_output.push( "$c1_thirty_seconds_prior_alert_tts_text = '30 seconds'" );
+            config_output.push( "$c1_thirty_seconds_prior_alert_notification_title = 'First Contact In 30 Seconds'" );
+            config_output.push( "$c1_thirty_seconds_prior_alert_notification_text = 'First contact is in 30 seconds'" );
+            config_output.push( "$c1_thirty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C1 - 20 Seconds Prior
+            config_output.push( "# C1 - 20 Seconds Prior" );
+            config_output.push( "$c1_twenty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-20-Seconds.wav'" );
+            config_output.push( "$c1_twenty_seconds_prior_alert_tts_text = '20 seconds'" );
+            config_output.push( "$c1_twenty_seconds_prior_alert_notification_title = 'First Contact In 20 Seconds'" );
+            config_output.push( "$c1_twenty_seconds_prior_alert_notification_text = 'First contact is in 20 seconds'" );
+            config_output.push( "$c1_twenty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C1 - 10 Seconds Prior
+            config_output.push( "# C1 - 10 Seconds Prior" );
+            config_output.push( "$c1_ten_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-10-Seconds.wav'" );
+            config_output.push( "$c1_ten_seconds_prior_alert_tts_text = '10 seconds'" );
+            config_output.push( "$c1_ten_seconds_prior_alert_notification_title = 'First Contact In 10 Seconds'" );
+            config_output.push( "$c1_ten_seconds_prior_alert_notification_text = 'First contact is in 10 seconds'" );
+            config_output.push( "$c1_ten_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C1
+            config_output.push( "# C1" );
+            config_output.push( "$c1_alert_sound_path = '.\\scripts\\eclipse\\sounds\\03-First-Contact-Now.wav'" );
+            config_output.push( "$c1_alert_tts_text = 'First contact is happening now'" );
+            config_output.push( "$c1_alert_notification_title = 'First Contact Now'" );
+            config_output.push( "$c1_alert_notification_text = 'First contact is happening now'" );
+            config_output.push( "$c1_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C2 - Telescope Refocus
+            config_output.push( "# C2 - Telescope Refocus" );
+            config_output.push( "$c2_telescope_refocus_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Refocus-Telescope.wav'" );
+            config_output.push( "$c2_telescope_refocus_alert_tts_text = 'Refocus telescope if necessary'" );
+            config_output.push( "$c2_telescope_refocus_alert_notification_title = 'Refocus Telescope'" );
+            config_output.push( "$c2_telescope_refocus_alert_notification_text = 'Refocus telescope if necessary'" );
+            config_output.push( "$c2_telescope_refocus_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C2 - Venus 20 Minutes Prior
+            config_output.push( "# C2 - Venus 20 Minutes Prior" );
+            config_output.push( "$c2_venus_twenty_minutes_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Venus.wav'" );
+            config_output.push( "$c2_venus_twenty_minutes_prior_alert_tts_text = 'Look for Venus at about 5 o''clock in relation to the sun'" );
+            config_output.push( "$c2_venus_twenty_minutes_prior_alert_notification_title = 'Look for Venus'" );
+            config_output.push( "$c2_venus_twenty_minutes_prior_alert_notification_text = 'Look for Venus at about 5 o''clock in relation to the sun'" );
+            config_output.push( "$c2_venus_twenty_minutes_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - Venus 10 Minutes Prior
+            config_output.push( "# C2 - Venus 10 Minutes Prior" );
+            config_output.push( "$c2_venus_ten_minutes_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Venus.wav'" );
+            config_output.push( "$c2_venus_ten_minutes_prior_alert_tts_text = 'Look for Venus at about 5 o''clock in relation to the sun'" );
+            config_output.push( "$c2_venus_ten_minutes_prior_alert_notification_title = 'Look for Venus'" );
+            config_output.push( "$c2_venus_ten_minutes_prior_alert_notification_text = 'Look for Venus at about 5 o''clock in relation to the sun'" );
+            config_output.push( "$c2_venus_ten_minutes_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - Venus 5 Minutes Prior
+            config_output.push( "# C2 - Venus 5 Minutes Prior" );
+            config_output.push( "$c2_venus_five_minutes_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Venus.wav'" );
+            config_output.push( "$c2_venus_five_minutes_prior_alert_tts_text = 'Look for Venus at about 5 o''clock in relation to the sun'" );
+            config_output.push( "$c2_venus_five_minutes_prior_alert_notification_title = 'Look for Venus'" );
+            config_output.push( "$c2_venus_five_minutes_prior_alert_notification_text = 'Look for Venus at about 5 o''clock in relation to the sun'" );
+            config_output.push( "$c2_venus_five_minutes_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - 3 Minutes Prior
+            config_output.push( "# C2 - 3 Minutes Prior" );
+            config_output.push( "$c2_three_minutes_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\04-Second-Contact-3-Minutes.wav'" );
+            config_output.push( "$c2_three_minutes_prior_alert_tts_text = 'Second contact is in 3 minutes'" );
+            config_output.push( "$c2_three_minutes_prior_alert_notification_title = 'Second Contact In 3 Minutes'" );
+            config_output.push( "$c2_three_minutes_prior_alert_notification_text = 'Second contact is in 3 minutes'" );
+            config_output.push( "$c2_three_minutes_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - 2 Minutes Prior
+            config_output.push( "# C2 - 2 Minutes Prior" );
+            config_output.push( "$c2_two_minutes_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\05-Second-Contact-2-Minutes.wav'" );
+            config_output.push( "$c2_two_minutes_prior_alert_tts_text = 'Second contact is in 2 minutes'" );
+            config_output.push( "$c2_two_minutes_prior_alert_notification_title = 'Second Contact In 2 Minutes'" );
+            config_output.push( "$c2_two_minutes_prior_alert_notification_text = 'Second contact is in 2 minutes'" );
+            config_output.push( "$c2_two_minutes_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - Jupiter 90 Seconds Prior
+            config_output.push( "# C2 - Jupiter 90 Seconds Prior" );
+            config_output.push( "$c2_jupiter_ninety_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Jupiter.wav'" );
+            config_output.push( "$c2_jupiter_ninety_seconds_prior_alert_tts_text = 'Look for Jupiter at about 11 o''clock in relation to the sun'" );
+            config_output.push( "$c2_jupiter_ninety_seconds_prior_alert_notification_title = 'Look for Jupiter'" );
+            config_output.push( "$c2_jupiter_ninety_seconds_prior_alert_notification_text = 'Look for Jupiter at about 11 o''clock in relation to the sun'" );
+            config_output.push( "$c2_jupiter_ninety_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - 60 Seconds Prior
+            config_output.push( "# C2 - 60 Seconds Prior" );
+            config_output.push( "$c2_sixty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\06-Second-Contact-60-Seconds.wav'" );
+            config_output.push( "$c2_sixty_seconds_prior_alert_tts_text = 'Second contact is in 60 seconds'" );
+            config_output.push( "$c2_sixty_seconds_prior_alert_notification_title = 'Second Contact In 60 Seconds'" );
+            config_output.push( "$c2_sixty_seconds_prior_alert_notification_text = 'Second contact is in 60 seconds'" );
+            config_output.push( "$c2_sixty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - Remove Solar Filter
+            config_output.push( "# C2 - Remove Solar Filter" );
+            config_output.push( "$c2_remove_solar_filter_alert_sound_path = '.\\scripts\\eclipse\\sounds\\07-Remove-Solar-Filter.wav'" );
+            config_output.push( "$c2_remove_solar_filter_alert_tts_text = 'Remove solar filter'" );
+            config_output.push( "$c2_remove_solar_filter_alert_notification_title = 'Remove Solar Filter'" );
+            config_output.push( "$c2_remove_solar_filter_alert_notification_text = 'Remove solar filter'" );
+            config_output.push( "$c2_remove_solar_filter_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C2 - 30 Seconds Prior
+            config_output.push( "# C2 - 30 Seconds Prior" );
+            config_output.push( "$c2_thirty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-30-Seconds.wav'" );
+            config_output.push( "$c2_thirty_seconds_prior_alert_tts_text = '30 seconds'" );
+            config_output.push( "$c2_thirty_seconds_prior_alert_notification_title = 'Second Contact In 30 Seconds'" );
+            config_output.push( "$c2_thirty_seconds_prior_alert_notification_text = 'Second contact is in 30 seconds'" );
+            config_output.push( "$c2_thirty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - 20 Seconds Prior
+            config_output.push( "# C2 - 20 Seconds Prior" );
+            config_output.push( "$c2_twenty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-20-Seconds.wav'" );
+            config_output.push( "$c2_twenty_seconds_prior_alert_tts_text = '20 seconds'" );
+            config_output.push( "$c2_twenty_seconds_prior_alert_notification_title = 'Second Contact In 20 Seconds'" );
+            config_output.push( "$c2_twenty_seconds_prior_alert_notification_text = 'Second contact is in 20 seconds'" );
+            config_output.push( "$c2_twenty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - 10 Seconds Prior
+            config_output.push( "# C2 - 10 Seconds Prior" );
+            config_output.push( "$c2_ten_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-10-Seconds.wav'" );
+            config_output.push( "$c2_ten_seconds_prior_alert_tts_text = '10 seconds'" );
+            config_output.push( "$c2_ten_seconds_prior_alert_notification_title = 'Second Contact In 10 Seconds'" );
+            config_output.push( "$c2_ten_seconds_prior_alert_notification_text = 'Second contact is in 10 seconds'" );
+            config_output.push( "$c2_ten_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C2 - Diamond Ring
+            config_output.push( "# C2 - Diamond Ring" );
+            config_output.push( "$c2_diamond_ring_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Diamond-Ring.wav'" );
+            config_output.push( "$c2_diamond_ring_alert_tts_text = 'Look for diamond ring'" );
+            config_output.push( "$c2_diamond_ring_alert_notification_title = 'Look For Diamond Ring'" );
+            config_output.push( "$c2_diamond_ring_alert_notification_text = 'Look for Diamond Ring'" );
+            config_output.push( "$c2_diamond_ring_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C2 - Baily's Beads
+            config_output.push( "# C2 - Baily's Beads" );
+            config_output.push( "$c2_bailys_beads_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Bailys-Beads.wav'" );
+            config_output.push( "$c2_bailys_beads_alert_tts_text = 'Look for Baily''s Beads'" );
+            config_output.push( "$c2_bailys_beads_alert_notification_title = 'Look For Baily''s Beads'" );
+            config_output.push( "$c2_bailys_beads_alert_notification_text = 'Look for Baily''s Beads'" );
+            config_output.push( "$c2_bailys_beads_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C2
+            config_output.push( "# C2" );
+            config_output.push( "$c2_alert_sound_path = '.\\scripts\\eclipse\\sounds\\08-Second-Contact-Now.wav'" );
+            config_output.push( "$c2_alert_tts_text = 'Second contact is happening now'" );
+            config_output.push( "$c2_alert_notification_title = 'Second Contact Now'" );
+            config_output.push( "$c2_alert_notification_text = 'Second contact is happening now'" );
+            config_output.push( "$c2_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // Totality Start
+            config_output.push( "# Totality Start" );
+            config_output.push( "$totality_start_alert_sound_path = '.\\scripts\\eclipse\\sounds\\09-Totality-Now.wav'" );
+            config_output.push( "$totality_start_alert_tts_text = 'Totality is happening now'" );
+            config_output.push( "$totality_start_alert_notification_title = 'Totality Now'" );
+            config_output.push( "$totality_start_alert_notification_text = 'Totality is happening now'" );
+            config_output.push( "$totality_start_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // Totality - First Observe Horizon
+            config_output.push( "# Totality - First Observe Horizon" );
+            config_output.push( "$totality_first_observe_horizon_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Observe-Horizon.wav'" );
+            config_output.push( "$totality_first_observe_horizon_alert_tts_text = 'Observe the horizon'" );
+            config_output.push( "$totality_first_observe_horizon_alert_notification_title = 'Observe The Horizon'" );
+            config_output.push( "$totality_first_observe_horizon_alert_notification_text = 'Observe the horizon'" );
+            config_output.push( "$totality_first_observe_horizon_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // Totality - Pons Brooks
+            config_output.push( "# Totality - Pons Brooks" );
+            config_output.push( "$totality_pons_brooks_alert_sound_path = '.\\scripts\\eclipse\\sounds\\10-Pons-Brooks.wav'" );
+            config_output.push( "$totality_pons_brooks_alert_tts_text = 'Look for comet 12P (Pons-Brooks) near Jupiter at about 4 o''clock in relation to Jupiter. This comet will appear between Jupiter and the Sun if visible.'" );
+            config_output.push( "$totality_pons_brooks_alert_notification_title = 'Comet 12P (Pons-Brooks)'" );
+            config_output.push( "$totality_pons_brooks_alert_notification_text = 'Look for Comet 12P (Pons-Brooks) near Jupiter at about 4 o''clock in relation to Jupiter. This comet will appear between Jupiter and the Sun if visible.'" );
+            config_output.push( "$totality_pons_brooks_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // Totality - Maximum Eclipse
+            config_output.push( "# Totality - Maximum Eclipse" );
+            config_output.push( "$totality_maximum_eclipse_alert_sound_path = '.\\scripts\\eclipse\\sounds\\11-Maximum-Eclipse-Now.wav'" );
+            config_output.push( "$totality_maximum_eclipse_alert_tts_text = 'Maximum eclipse is happening now'" );
+            config_output.push( "$totality_maximum_eclipse_alert_notification_title = 'Maximum Eclipse Now'" );
+            config_output.push( "$totality_maximum_eclipse_alert_notification_text = 'Maximum eclipse is happening now'" );
+            config_output.push( "$totality_maximum_eclipse_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // Totality - Second Observe Horizon
+            config_output.push( "# Totality - Second Observe Horizon" );
+            config_output.push( "$totality_second_observe_horizon_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Observe-Horizon.wav'" );
+            config_output.push( "$totality_second_observe_horizon_alert_tts_text = 'Observe the horizon'" );
+            config_output.push( "$totality_second_observe_horizon_alert_notification_title = 'Observe The Horizon'" );
+            config_output.push( "$totality_second_observe_horizon_alert_notification_text = 'Observe the horizon'" );
+            config_output.push( "$totality_second_observe_horizon_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - 60 Seconds Prior
+            config_output.push( "# C3 - 60 Seconds Prior" );
+            config_output.push( "$c3_sixty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\12-Third-Contact-60-Seconds.wav'" );
+            config_output.push( "$c3_sixty_seconds_prior_alert_tts_text = 'Third contact is in 60 seconds'" );
+            config_output.push( "$c3_sixty_seconds_prior_alert_notification_title = 'Third Contact In 60 Seconds'" );
+            config_output.push( "$c3_sixty_seconds_prior_alert_notification_text = 'Third contact is in 60 seconds'" );
+            config_output.push( "$c3_sixty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - 30 Seconds Prior
+            config_output.push( "# C3 - 30 Seconds Prior" );
+            config_output.push( "$c3_thirty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-30-Seconds.wav'" );
+            config_output.push( "$c3_thirty_seconds_prior_alert_tts_text = '30 seconds'" );
+            config_output.push( "$c3_thirty_seconds_prior_alert_notification_title = 'Third Contact In 30 Seconds'" );
+            config_output.push( "$c3_thirty_seconds_prior_alert_notification_text = 'Third contact is in 30 seconds'" );
+            config_output.push( "$c3_thirty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - 20 Seconds Prior
+            config_output.push( "# C3 - 20 Seconds Prior" );
+            config_output.push( "$c3_twenty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-20-Seconds.wav'" );
+            config_output.push( "$c3_twenty_seconds_prior_alert_tts_text = '20 seconds'" );
+            config_output.push( "$c3_twenty_seconds_prior_alert_notification_title = 'Third Contact In 20 Seconds'" );
+            config_output.push( "$c3_twenty_seconds_prior_alert_notification_text = 'Third contact is in 20 seconds'" );
+            config_output.push( "$c3_twenty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - 10 Seconds Prior
+            config_output.push( "# C3 - 10 Seconds Prior" );
+            config_output.push( "$c3_ten_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-10-Seconds.wav'" );
+            config_output.push( "$c3_ten_seconds_prior_alert_tts_text = '10 seconds'" );
+            config_output.push( "$c3_ten_seconds_prior_alert_notification_title = 'Third Contact In 10 Seconds'" );
+            config_output.push( "$c3_ten_seconds_prior_alert_notification_text = 'Third contact is in 10 seconds'" );
+            config_output.push( "$c3_ten_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // Totality End
+            config_output.push( "# Totality End" );
+            config_output.push( "$totality_end_alert_sound_path = '.\\scripts\\eclipse\\sounds\\13-Totality-Ending-Now.wav'" );
+            config_output.push( "$totality_end_alert_tts_text = 'Totality is ending now'" );
+            config_output.push( "$totality_end_alert_notification_title = 'Totality Ending'" );
+            config_output.push( "$totality_end_alert_notification_text = 'Totality is ending now'" );
+            config_output.push( "$totality_end_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C3
+            config_output.push( "# C3" );
+            config_output.push( "$c3_alert_sound_path = '.\\scripts\\eclipse\\sounds\\14-Third-Contact-Now.wav'" );
+            config_output.push( "$c3_alert_tts_text = 'Third contact is happening now'" );
+            config_output.push( "$c3_alert_notification_title = 'Third Contact Now'" );
+            config_output.push( "$c3_alert_notification_text = 'Third contact is happening now'" );
+            config_output.push( "$c3_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C3 - Baily's Beads
+            config_output.push( "# C3 - Baily's Beads" );
+            config_output.push( "$c3_bailys_beads_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Bailys-Beads.wav'" );
+            config_output.push( "$c3_bailys_beads_alert_tts_text = 'Look for Baily''s Beads'" );
+            config_output.push( "$c3_bailys_beads_alert_notification_title = 'Look For Baily''s Beads'" );
+            config_output.push( "$c3_bailys_beads_alert_notification_text = 'Look for Baily''s Beads'" );
+            config_output.push( "$c3_bailys_beads_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C3 - Diamond Ring
+            config_output.push( "# C3 - Diamond Ring" );
+            config_output.push( "$c3_diamond_ring_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Diamond-Ring.wav'" );
+            config_output.push( "$c3_diamond_ring_alert_tts_text = 'Look for diamond ring'" );
+            config_output.push( "$c3_diamond_ring_alert_notification_title = 'Look For Diamond Ring'" );
+            config_output.push( "$c3_diamond_ring_alert_notification_text = 'Look for Diamond Ring'" );
+            config_output.push( "$c3_diamond_ring_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C3 - Replace Solar Filter
+            config_output.push( "# C3 - Replace Solar Filter" );
+            config_output.push( "$c3_replace_solar_filter_alert_sound_path = '.\\scripts\\eclipse\\sounds\\15-Replace-Solar-Filter.wav'" );
+            config_output.push( "$c3_replace_solar_filter_alert_tts_text = 'Replace solar filter'" );
+            config_output.push( "$c3_replace_solar_filter_alert_notification_title = 'Replace Solar Filter'" );
+            config_output.push( "$c3_replace_solar_filter_alert_notification_text = 'Replace solar filter'" );
+            config_output.push( "$c3_replace_solar_filter_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C3 - Jupiter 60 Seconds After
+            config_output.push( "# C3 - Jupiter 60 Seconds After" );
+            config_output.push( "$c3_jupiter_sixty_seconds_after_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Jupiter-Disappear.wav'" );
+            config_output.push( "$c3_jupiter_sixty_seconds_after_alert_tts_text = 'Jupiter should disappear shortly'" );
+            config_output.push( "$c3_jupiter_sixty_seconds_after_alert_notification_title = 'Jupiter Disappearing'" );
+            config_output.push( "$c3_jupiter_sixty_seconds_after_alert_notification_text = 'Jupiter should disappear shortly'" );
+            config_output.push( "$c3_jupiter_sixty_seconds_after_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - Venus 5 Minutes After
+            config_output.push( "# C3 - Venus 5 Minutes After" );
+            config_output.push( "$c3_venus_five_minutes_after_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Venus-Disappear.wav'" );
+            config_output.push( "$c3_venus_five_minutes_after_alert_tts_text = 'Venus should disappear shortly'" );
+            config_output.push( "$c3_venus_five_minutes_after_alert_notification_title = 'Venus Disappearing'" );
+            config_output.push( "$c3_venus_five_minutes_after_alert_notification_text = 'Venus should disappear shortly'" );
+            config_output.push( "$c3_venus_five_minutes_after_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - Venus 10 Minutes After
+            config_output.push( "# C3 - Venus 10 Minutes After" );
+            config_output.push( "$c3_venus_ten_minutes_after_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Venus-Disappear.wav'" );
+            config_output.push( "$c3_venus_ten_minutes_after_alert_tts_text = 'Venus should disappear shortly'" );
+            config_output.push( "$c3_venus_ten_minutes_after_alert_notification_title = 'Venus Disappearing'" );
+            config_output.push( "$c3_venus_ten_minutes_after_alert_notification_text = 'Venus should disappear shortly'" );
+            config_output.push( "$c3_venus_ten_minutes_after_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - Venus 20 Minutes After
+            config_output.push( "# C3 - Venus 20 Minutes After" );
+            config_output.push( "$c3_venus_twenty_minutes_after_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Venus-Disappear.wav'" );
+            config_output.push( "$c3_venus_twenty_minutes_after_alert_tts_text = 'Venus should disappear shortly'" );
+            config_output.push( "$c3_venus_twenty_minutes_after_alert_notification_title = 'Venus Disappearing'" );
+            config_output.push( "$c3_venus_twenty_minutes_after_alert_notification_text = 'Venus should disappear shortly'" );
+            config_output.push( "$c3_venus_twenty_minutes_after_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C3 - Telescope Refocus
+            config_output.push( "# C3 - Telescope Refocus" );
+            config_output.push( "$c3_telescope_refocus_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-Refocus-Telescope.wav'" );
+            config_output.push( "$c3_telescope_refocus_alert_tts_text = 'Refocus telescope if necessary'" );
+            config_output.push( "$c3_telescope_refocus_alert_notification_title = 'Refocus Telescope'" );
+            config_output.push( "$c3_telescope_refocus_alert_notification_text = 'Refocus telescope if necessary'" );
+            config_output.push( "$c3_telescope_refocus_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // C4 - 60 Seconds Prior
+            config_output.push( "# C4 - 60 Seconds Prior" );
+            config_output.push( "$c4_sixty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\16-Fourth-Contact-60-Seconds.wav'" );
+            config_output.push( "$c4_sixty_seconds_prior_alert_tts_text = 'Fourth contact is in 60 seconds'" );
+            config_output.push( "$c4_sixty_seconds_prior_alert_notification_title = 'Fourth Contact In 60 Seconds'" );
+            config_output.push( "$c4_sixty_seconds_prior_alert_notification_text = 'Fourth contact is in 60 seconds'" );
+            config_output.push( "$c4_sixty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C4 - 30 Seconds Prior
+            config_output.push( "# C4 - 30 Seconds Prior" );
+            config_output.push( "$c4_thirty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-30-Seconds.wav'" );
+            config_output.push( "$c4_thirty_seconds_prior_alert_tts_text = '30 seconds'" );
+            config_output.push( "$c4_thirty_seconds_prior_alert_notification_title = 'Fourth Contact In 30 Seconds'" );
+            config_output.push( "$c4_thirty_seconds_prior_alert_notification_text = 'Fourth contact is in 30 seconds'" );
+            config_output.push( "$c4_thirty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C4 - 20 Seconds Prior
+            config_output.push( "# C4 - 20 Seconds Prior" );
+            config_output.push( "$c4_twenty_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-20-Seconds.wav'" );
+            config_output.push( "$c4_twenty_seconds_prior_alert_tts_text = '20 seconds'" );
+            config_output.push( "$c4_twenty_seconds_prior_alert_notification_title = 'Fourth Contact In 20 Seconds'" );
+            config_output.push( "$c4_twenty_seconds_prior_alert_notification_text = 'Fourth contact is in 20 seconds'" );
+            config_output.push( "$c4_twenty_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C4 - 10 Seconds Prior
+            config_output.push( "# C4 - 10 Seconds Prior" );
+            config_output.push( "$c4_ten_seconds_prior_alert_sound_path = '.\\scripts\\eclipse\\sounds\\00-10-Seconds.wav'" );
+            config_output.push( "$c4_ten_seconds_prior_alert_tts_text = '10 seconds'" );
+            config_output.push( "$c4_ten_seconds_prior_alert_notification_title = 'Fourth Contact In 10 Seconds'" );
+            config_output.push( "$c4_ten_seconds_prior_alert_notification_text = 'Fourth contact is in 10 seconds'" );
+            config_output.push( "$c4_ten_seconds_prior_alert_notification_type = 'Info'" );
+            config_output.push( "" );
+
+            // C4
+            config_output.push( "# C4" );
+            config_output.push( "$c4_alert_sound_path = '.\\scripts\\eclipse\\sounds\\17-Fourth-Contact-Now.wav'" );
+            config_output.push( "$c4_alert_tts_text = 'Fourth contact is happening now'" );
+            config_output.push( "$c4_alert_notification_title = 'Fourth Contact Now'" );
+            config_output.push( "$c4_alert_notification_text = 'Fourth contact is happening now'" );
+            config_output.push( "$c4_alert_notification_type = 'Warning'" );
+            config_output.push( "" );
+
+            // Script End
+            config_output.push( "" );
+            config_output.push( "# Script End" );
+            config_output.push( "$script_end_sound_path = '.\\scripts\\eclipse\\sounds\\18-Eclipse-End.wav'" );
+            config_output.push( "$script_end_tts_text = 'The SharpCap eclipse script has ended'" );
+            config_output.push( "$script_end_notification_title = 'SharpCap Script - Ended'" );
+            config_output.push( "$script_end_notification_text = 'The SharpCap eclipse script has ended'" );
+            config_output.push( "$script_end_notification_type = 'Info'" );
+            config_output.push( "" );
+
+
+            // Timestamps
+            config_output.push( "" );
+            config_output.push( "##" );
+            config_output.push( "# Timestamps" );
+            config_output.push( "#" );
+            config_output.push( "# Note: Local device times" );
+            config_output.push( "#" );
+            config_output.push( "" );
+
+            // Script Start
             config_output.push( "# Script Start" );
             config_output.push( "$script_start_time = '" + secondsToTime( timeToSeconds( document.getElementById( 'partial_begins' ).value ) - 65 ) + "'" );
             config_output.push( "" );
@@ -831,10 +1344,10 @@
             config_output.push( "" );
             config_output.push( "# C1 - " + c1_alert_time );
             config_output.push( "$c1_alert_time = '" + c1_alert_time + "'" );
-            config_output.push( "$c1_sixty_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 60 ) );
-            config_output.push( "$c1_thirty_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 30 ) );
-            config_output.push( "$c1_twenty_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 20 ) );
-            config_output.push( "$c1_ten_seconds_prior_alert_time = (Get-Date $c1_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c1_alert_time_seconds - 10 ) );
+            config_output.push( "$c1_sixty_seconds_prior_alert_time = ( Get-Date $c1_alert_time ).AddSeconds( -60 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c1_alert_time_seconds - 60 ) );
+            config_output.push( "$c1_thirty_seconds_prior_alert_time = ( Get-Date $c1_alert_time ).AddSeconds( -30 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c1_alert_time_seconds - 30 ) );
+            config_output.push( "$c1_twenty_seconds_prior_alert_time = ( Get-Date $c1_alert_time ).AddSeconds( -20 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c1_alert_time_seconds - 20 ) );
+            config_output.push( "$c1_ten_seconds_prior_alert_time = ( Get-Date $c1_alert_time ).AddSeconds( -10 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c1_alert_time_seconds - 10 ) );
 
             config_output.push( "" );
 
@@ -844,20 +1357,20 @@
             config_output.push( "" );
             config_output.push( "# C2 - " + c2_alert_time );
             config_output.push( "$c2_alert_time = '" + c2_alert_time + "'" );
-            config_output.push( "$c2_telescope_refocus_alert_time = (Get-Date $c2_alert_time).AddSeconds(-1500).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 1500 ) );
-            config_output.push( "$c2_venus_twenty_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-1200).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 1200 ) );
-            config_output.push( "$c2_venus_ten_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-600).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 600 ) );
-            config_output.push( "$c2_venus_five_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-300).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 300 ) );
-            config_output.push( "$c2_three_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-180).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 180 ) );
-            config_output.push( "$c2_two_minutes_alert_time = (Get-Date $c2_alert_time).AddSeconds(-120).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 120 ) );
-            config_output.push( "$c2_jupiter_ninty_seconds_alert_time = (Get-Date $c2_alert_time).AddSeconds(-90).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 90 ) );
-            config_output.push( "$c2_sixty_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 60 ) );
-            config_output.push( "$c2_remove_solar_filter_alert_time = (Get-Date $c2_alert_time).AddSeconds(-33).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 32 ) );
-            config_output.push( "$c2_thirty_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 30 ) );
-            config_output.push( "$c2_twenty_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 20 ) );
-            config_output.push( "$c2_ten_seconds_prior_alert_time = (Get-Date $c2_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 10 ) );
-            config_output.push( "$c2_diamond_ring_alert_time = (Get-Date $c2_alert_time).AddSeconds(-8).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 8 ) );
-            config_output.push( "$c2_bailys_beads_alert_time = (Get-Date $c2_alert_time).AddSeconds(-5).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds - 5 ) );
+            config_output.push( "$c2_telescope_refocus_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -1500 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 1500 ) );
+            config_output.push( "$c2_venus_twenty_minutes_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -1200 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 1200 ) );
+            config_output.push( "$c2_venus_ten_minutes_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -600 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 600 ) );
+            config_output.push( "$c2_venus_five_minutes_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -300 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 300 ) );
+            config_output.push( "$c2_three_minutes_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -180 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 180 ) );
+            config_output.push( "$c2_two_minutes_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -120 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 120 ) );
+            config_output.push( "$c2_jupiter_ninety_seconds_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -90 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 90 ) );
+            config_output.push( "$c2_sixty_seconds_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -60 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 60 ) );
+            config_output.push( "$c2_remove_solar_filter_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -33 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 32 ) );
+            config_output.push( "$c2_thirty_seconds_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -30 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 30 ) );
+            config_output.push( "$c2_twenty_seconds_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -20 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 20 ) );
+            config_output.push( "$c2_ten_seconds_prior_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -10 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 10 ) );
+            config_output.push( "$c2_diamond_ring_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -8 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 8 ) );
+            config_output.push( "$c2_bailys_beads_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( -5 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds - 5 ) );
             config_output.push( "" );
 
             // Totality
@@ -867,30 +1380,30 @@
                 maximum_eclipse_time = parseInt( ( ( c3_alert_time_seconds - c2_alert_time_seconds ) / 2 ), 10 );
             config_output.push( "" );
             config_output.push( "# Totality - " + c2_alert_time + " - " + c3_alert_time );
-            config_output.push( "$totality_start_alert_time = (Get-Date $c2_alert_time).AddSeconds(4).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 4 ) );
-            config_output.push( "$totality_first_observe_horizon_alert_time = (Get-Date $c2_alert_time).AddSeconds(20).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 20 ) );
-            config_output.push( "$totality_pons_brooks_alert_time = (Get-Date $c2_alert_time).AddSeconds(50).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 50 ) );
-            config_output.push( "$totality_maximum_eclipse_alert_time = (Get-Date $c2_alert_time).AddSeconds(" + maximum_eclipse_time + ").ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + maximum_eclipse_time ) );
-            config_output.push( "$totality_second_observe_horizon_alert_time = (Get-Date $c2_alert_time).AddSeconds(80).ToString('HH:mm:ss') # " + secondsToTime( c2_alert_time_seconds + 80 ) );
+            config_output.push( "$totality_start_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( 4 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds + 4 ) );
+            config_output.push( "$totality_first_observe_horizon_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( 20 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds + 20 ) );
+            config_output.push( "$totality_pons_brooks_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( 50 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds + 50 ) );
+            config_output.push( "$totality_maximum_eclipse_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( " + maximum_eclipse_time + " ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds + maximum_eclipse_time ) );
+            config_output.push( "$totality_second_observe_horizon_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( 80 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c2_alert_time_seconds + 80 ) );
             config_output.push( "" );
 
             // C3
             config_output.push( "" );
             config_output.push( "# C3 - " + c3_alert_time );
             config_output.push( "$c3_alert_time = '" + c3_alert_time + "'" );
-            config_output.push( "$c3_sixty_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 60 ) );
-            config_output.push( "$c3_thirty_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 30 ) );
-            config_output.push( "$c3_twenty_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 20 ) );
-            config_output.push( "$c3_ten_seconds_prior_alert_time = (Get-Date $c3_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 10 ) );
-            config_output.push( "$totality_end_alert_time = (Get-Date $c2_alert_time).AddSeconds(" + ( totality_end_time_offset - 4 ) + ").ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds - 4 ) );
-            config_output.push( "$c3_bailys_beads_alert_time = (Get-Date $c3_alert_time).AddSeconds(3).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 3 ) );
-            config_output.push( "$c3_diamond_ring_alert_time = (Get-Date $c3_alert_time).AddSeconds(6).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 6 ) );
-            config_output.push( "$c3_replace_solar_filter_alert_time = (Get-Date $c3_alert_time).AddSeconds(32).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 32 ) );
-            config_output.push( "$c3_jupiter_sixty_seconds_alert_time = (Get-Date $c3_alert_time).AddSeconds(60).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 60 ) );
-            config_output.push( "$c3_venus_five_minutes_alert_time = (Get-Date $c3_alert_time).AddSeconds(300).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 300 ) );
-            config_output.push( "$c3_venus_ten_minutes_alert_time = (Get-Date $c3_alert_time).AddSeconds(600).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 600 ) );
-            config_output.push( "$c3_venus_twenty_minutes_alert_time = (Get-Date $c3_alert_time).AddSeconds(1200).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 1200 ) );
-            config_output.push( "$c3_telescope_refocus_alert_time = (Get-Date $c3_alert_time).AddSeconds(1500).ToString('HH:mm:ss') # " + secondsToTime( c3_alert_time_seconds + 1500 ) );
+            config_output.push( "$c3_sixty_seconds_prior_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( -60 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds - 60 ) );
+            config_output.push( "$c3_thirty_seconds_prior_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( -30 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds - 30 ) );
+            config_output.push( "$c3_twenty_seconds_prior_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( -20 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds - 20 ) );
+            config_output.push( "$c3_ten_seconds_prior_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( -10 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds - 10 ) );
+            config_output.push( "$totality_end_alert_time = ( Get-Date $c2_alert_time ).AddSeconds( " + ( totality_end_time_offset - 4 ) + " ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds - 4 ) );
+            config_output.push( "$c3_bailys_beads_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 3 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 3 ) );
+            config_output.push( "$c3_diamond_ring_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 6 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 6 ) );
+            config_output.push( "$c3_replace_solar_filter_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 32 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 32 ) );
+            config_output.push( "$c3_jupiter_sixty_seconds_after_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 60 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 60 ) );
+            config_output.push( "$c3_venus_five_minutes_after_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 300 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 300 ) );
+            config_output.push( "$c3_venus_ten_minutes_after_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 600 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 600 ) );
+            config_output.push( "$c3_venus_twenty_minutes_after_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 1200 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 1200 ) );
+            config_output.push( "$c3_telescope_refocus_alert_time = ( Get-Date $c3_alert_time ).AddSeconds( 1500 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c3_alert_time_seconds + 1500 ) );
 
             config_output.push( "" );
 
@@ -900,10 +1413,10 @@
             config_output.push( "" );
             config_output.push( "# C4 - " + c4_alert_time );
             config_output.push( "$c4_alert_time = '" + c4_alert_time + "'" );
-            config_output.push( "$c4_sixty_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-60).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 60 ) );
-            config_output.push( "$c4_thirty_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-30).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 30 ) );
-            config_output.push( "$c4_twenty_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-20).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 20 ) );
-            config_output.push( "$c4_ten_seconds_prior_alert_time = (Get-Date $c4_alert_time).AddSeconds(-10).ToString('HH:mm:ss') # " + secondsToTime( c4_alert_time_seconds - 10 ) );
+            config_output.push( "$c4_sixty_seconds_prior_alert_time = ( Get-Date $c4_alert_time ).AddSeconds( -60 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c4_alert_time_seconds - 60 ) );
+            config_output.push( "$c4_thirty_seconds_prior_alert_time = ( Get-Date $c4_alert_time ).AddSeconds( -30 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c4_alert_time_seconds - 30 ) );
+            config_output.push( "$c4_twenty_seconds_prior_alert_time = ( Get-Date $c4_alert_time ).AddSeconds( -20 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c4_alert_time_seconds - 20 ) );
+            config_output.push( "$c4_ten_seconds_prior_alert_time = ( Get-Date $c4_alert_time ).AddSeconds( -10 ).ToString( 'HH:mm:ss' ) # " + secondsToTime( c4_alert_time_seconds - 10 ) );
             config_output.push( "" );
 
             // Script End
