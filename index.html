@@ -25,7 +25,7 @@
         margin: auto;
     }
 
-    #FlipDivTips, #FlipDivInstructions {
+    #FlipDivNotes {
         display: none;
     }
 
@@ -170,28 +170,10 @@
             <input type="button" value="Download REQUIRED Powershell Companion Script" id="psDownloadButton" style="max-width: 45%;" onClick="downloadPSScript();" />
         </div>
         <ul class="topMenu">
-            <li><a id="MenuNotes" href="javascript://" onClick="toggleDiv(this);" class='active'>Notes</a></li>
-            <li><a id="MenuInstructions" href="javascript://" onClick="toggleDiv(this);">Instructions</a></li>
+            <li><a id="MenuInstructions" href="javascript://" onClick="toggleDiv(this);" class='active'>Instructions</a></li>
+            <li><a id="MenuNotes" href="javascript://" onClick="toggleDiv(this);">Notes</a></li>
             <li style="border-right: 0px;"><a href="javascript://" >&lt; - Click the active menu item to hide the content.</a></li>
         </ul>
-        <div class="flipDiv" id="FlipDivNotes">
-            <dl>
-                <dt>What time?</dt>
-                <dd>Times should be entered in local time of your observing site.</dd>
-                <dd>You can get the local Eclilpse Event Times from <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Time and Date</a>.</dd>
-                <dt>Lots of Data...</dt>
-                <dd>I suggest adding <span class="code">{TargetName}</span> and <span class="code">{Exposure}</span> in the filename template in SharpCap Settings to make it easier to differentiate files after the eclipse.</dd>
-                <dd>Example: <span class="code">{Date:S}\{TargetName}\{TargetName}_{Time}_{Exposure}</span></dd>
-                <dt>Test, test test!</dt>
-                <dd>Ahead of the eclipse, please test the operation and behavior of your hardware.</dd>
-                <dt>Total Recall</dt>
-                <dd>The full configuration is now saved to your local browser, in case you'd like to tweak your action plan in the future.</dd>
-                <dd>The parameter encoded URL is put as a comment in the top of the generated sequence file, so you can use that for future collection plan tweaks.</dd>
-                <dt>Baily's Beads into Totality</dt>
-                <dd>If you'd like to capture the Baily's Beads Collection Plan into totality, you can do so by fudging the 'Full Begins' and/or 'Full Ends' times to be after totality begins/before totality ends.</dd>
-                <dd>This may be useful since prediction of the exact moment of totality is not exact due to the shape of the Moon's surface.</dd>
-            </dl>
-        </div>
         <div class="flipDiv" id="FlipDivInstructions">
             <ol>
                 <li>Go to <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Eclipse Map</a>.</li>
@@ -221,14 +203,40 @@
                 <li>Monitor for an Alert sound, and banner at the top to Remove or Apply the Solar Filter around the time of Totality.</li>
             </ol>
 
-            <h4><em>Optional:</em> Download the Powershell script and assets</h4>
+            <b><em>Optional:</em> Download the Powershell script and assets</b>
             <ol>
                 <li>Download Powershell script <a href="javascript://" onClick="downloadPSScript();">april-2024-solar-eclipse.ps1</a></li>
-                <li>Copy the script to <span class="code">{SHARPCAP_INSTALL_FOLDER}\scripts\eclipse\</span> (.e.g. <span class="code">C:\Program Files\SharpCap 4.1 (64 bit)\scripts\eclipse\</span>)</li>
-                <li>Generate a sequence</li>
+                <li>In the <span class="code">C:\Program Files\SharpCap 4.1 (64 bit)\</span> folder, create a new folder named <span class="code">scripts</span></li>
+                <li>Copy the script to <span class="code">C:\Program Files\SharpCap 4.1 (64 bit)\scripts\</span><br />
+                    <em>If you installed SharpCap to a non-default folder, please adjust the saved path to match.</em></li>
+                <li>Generate a sequence<br />
+                    <br />
+                    <b>Notes:</b>
+                    <ul>
+                        <li>The Powershell script runs separately from the SharpCap Eclipse Sequencer script. Ending the SharpCap Eclipse Sequencer script will not terminate the Powershell script.</li>
+                        <li><em>However,</em> the Powershell script will terminate on its own about 5 seconds after the final scheduled audiable alert.</li>
+                        <li>You can also terminate the PowerShell script by closing the minimized PowerShell window.</li>
+                    </ul>
+                </li>
             </ol>
-            <p><em>Note: The Powershell script runs separately from the SharpCap Eclipse Sequencer script. Ending the SharpCap Eclipse Sequencer script will not terminate the Powershell script.</em></p>
-            <p><em>However, the Powershell script will terminate on its own about 5 seconds after the final scheduled audiable alert.</em></p>
+        </div>
+        <div class="flipDiv" id="FlipDivNotes">
+            <dl>
+                <dt>What time?</dt>
+                <dd>Times should be entered in local time of your observing site.</dd>
+                <dd>You can get the local Eclilpse Event Times from <a href="https://www.timeanddate.com/eclipse/map/2024-april-8" target="_blank">Time and Date</a>.</dd>
+                <dt>Lots of Data...</dt>
+                <dd>I suggest adding <span class="code">{TargetName}</span> and <span class="code">{Exposure}</span> in the filename template in SharpCap Settings to make it easier to differentiate files after the eclipse.</dd>
+                <dd>Example: <span class="code">{Date:S}\{TargetName}\{TargetName}_{Time}_{Exposure}</span></dd>
+                <dt>Test, test test!</dt>
+                <dd>Ahead of the eclipse, please test the operation and behavior of your hardware.</dd>
+                <dt>Total Recall</dt>
+                <dd>The full configuration is now saved to your local browser, in case you'd like to tweak your action plan in the future.</dd>
+                <dd>The parameter encoded URL is put as a comment in the top of the generated sequence file, so you can use that for future collection plan tweaks.</dd>
+                <dt>Baily's Beads into Totality</dt>
+                <dd>If you'd like to capture the Baily's Beads Collection Plan into totality, you can do so by fudging the 'Full Begins' and/or 'Full Ends' times to be after totality begins/before totality ends.</dd>
+                <dd>This may be useful since prediction of the exact moment of totality is not exact due to the shape of the Moon's surface.</dd>
+            </dl>
         </div>
         <table id="wrapperTable"><tr style="vertical-align: top;"><td>
             <table class="params">
@@ -822,7 +830,7 @@
                 if ( c4 != "" )
                     psParams += " -c4 "+c4;
 
-                preOutput.push("", "    # Powershell Script", "    RUN PowerShell WITH PARAMS \"-NoProfile -ExecutionPolicy Bypass -WindowStyle Minimized -Command .\\scripts\\eclipse\\april-2024-solar-eclipse.ps1 "+psParams+"\" WAIT False" );
+                preOutput.push("", "    # Powershell Script", "    RUN PowerShell WITH PARAMS \"-NoProfile -ExecutionPolicy Bypass -WindowStyle Minimized -Command .\\scripts\\april-2024-solar-eclipse.ps1 "+psParams+"\" WAIT False" );
 
             }
 
