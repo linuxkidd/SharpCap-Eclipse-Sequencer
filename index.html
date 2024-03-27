@@ -514,6 +514,7 @@
         }
 
         function generateSharpCap() {
+            saveState();
             const partialInterval = parseInt(document.getElementById("partialInterval").value),
                 partialCount = parseInt(document.getElementById("partialCount").value),
                 bailysInterval = parseInt(document.getElementById("bailysInterval").value);
