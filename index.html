@@ -25,8 +25,14 @@
         margin: auto;
     }
 
-    #FlipDivNotes {
+    #FlipDivNotes,#warnDiv {
         display: none;
+    }
+
+    #warnDiv {
+        background: rgba(255,0,0,1);
+        color: white;
+        padding: 15px;
     }
 
     .headerBlock {
@@ -327,7 +333,8 @@
                     </select></td></tr>
                 <tr><td class="label">SharpCap Profile<br />(blank for none):</td><td><input onChange="hideOutput();" type="text" id="profile" value="" /></td></tr>
             </table>
-        </th></tr></table>
+        </td></tr></table>
+        <div id="warnDiv"></div>
         <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span> before and after Totality.</h3><table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
         <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.</h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
         <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
@@ -341,6 +348,7 @@
         </div>
     </div>
     <script type="text/javascript">
+
         window.onerror = function (message,url,line,col,error) {
             console.log("FAILURE: "+message+"\n"+url+"\nLine: "+line+"\ncolumn: "+col+"\n"+error);
         }
@@ -408,6 +416,7 @@
                         verifyTime(document.getElementById("partial_begins"));
                         verifyTime(document.getElementById("partial_ends"));
                     }
+                    verifyTime();
                 } else {
                     document.getElementById(t+"PlanDiv").style.display="none";
                 }
@@ -436,19 +445,42 @@
             saveState();
         }
 
-        function verifyTime(t) {
+        function verifyTime(v) {
             hideOutput();
-            if(!(t.classList.contains("disabledInput"))) {
-                let v = timeRegEx.test(t.value);
-                if(v) {
-                    t.classList.add("goodInput");
-                    t.classList.remove("badInput");
-                } else {
-                    t.classList.remove("goodInput");
-                    t.classList.add("badInput");
+            var alerts=[];
+            let maxTime= [ 0, '' ];
+            eTimes.forEach((t,idx) => {
+                let tEl = document.getElementById(t)
+                if(!(tEl.classList.contains("disabledInput"))) {
+                    let v = timeRegEx.test(tEl.value);
+                    if(v) {
+                        tEl.classList.add("goodInput");
+                        tEl.classList.remove("badInput");
+                    } else {
+                        tEl.classList.remove("goodInput");
+                        tEl.classList.add("badInput");
+                        alerts.push("'"+t.split("_").join(" ")+"' is not in 24 hour format ( HH:MM:SS or HH:MM:SS.ms )")
+                    }
                 }
-                saveState();
-            }
+                if( tEl.value !="" ) {
+                    let tSeconds = timeToSeconds(tEl.value);
+                    if( tSeconds <= maxTime[0] ) {
+                        if( tEl.classList.contains("goodInput")) {
+                            tEl.classList.remove("goodInput");
+                            tEl.classList.add("badInput");
+                        }
+                        alerts.push("'"+t.split("_").join(" ")+"'' is earlier than '"+maxTime[1].split("_").join(" ")+"'");
+
+                    } else
+                        maxTime = [ tSeconds, t ];
+                }
+            });
+            wEl = document.getElementById("warnDiv");
+            if( alerts.length ) {
+                wEl.innerHTML="<b>Warning!</b><ul>\n<li>"+alerts.join("</li><li>")+"</li></ul>";
+                wEl.style.display="block";
+            } else
+                wEl.style.display="none";
         }
 
         function checkIfLastStep(t) {
@@ -518,22 +550,33 @@
                 partialCount = parseInt(document.getElementById("partialCount").value),
                 bailysInterval = parseInt(document.getElementById("bailysInterval").value);
             try {
-                if(partialInterval>0 || partialCount>0) {
-                    ["partial_begins", "partial_ends"].forEach((t) => {
-                        let v = timeRegEx.test(document.getElementById(t).value);
-                        if(document.getElementById(t).value=="" || !v) {
-                            alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
-                            throw BreakException;
-                        }
-                    });
-                }
-                ["full_begins", "full_ends"].forEach((t) => {
-                    let v = timeRegEx.test(document.getElementById(t).value);
-                    if(document.getElementById(t).value=="" || !v) {
-                        alert("  Sorry, please fill in the "+t.split("_").join(" ")+" timestamp\n    in 24 hour, HH:MM:SS format.");
-                        throw BreakException;
+                let maxTime= [ 0, '' ];
+                var alerts=[];
+                eTimes.forEach((t,idx) => {
+                    if((partialInterval==0 && partialCount==0) && t.match(/^partial/))
+                        return;
+
+                    let tEl = document.getElementById(t)
+                    let v = timeRegEx.test(tEl.value);
+                    if(tEl.value=="" || !v) {
+                        alerts.push("Sorry, please fill in "+t.split("_").join(" ")+" in 24 hour, HH:MM:SS format.");
+                        return;
                     }
+
+                    let tSeconds = timeToSeconds(tEl.value);
+                    if( tSeconds <= maxTime[0] ) {
+                        alerts.push("'"+t.split("_").join(" ")+"' is earlier than '"+maxTime[1].split("_").join(" ")+"'");
+                    } else
+                        maxTime = [ tSeconds, t ];
                 });
+                wEl = document.getElementById("warnDiv");
+                if( alerts.length ) {
+                    alert("Warning!\n"+alerts.join("\n"));
+                    wEl.innerHTML="<b>Warning!</b><ul>\n<li>"+alerts.join("</li><li>")+"</li></ul>";
+                    wEl.style.display="block";
+                    throw BreakException;
+                } else
+                    wEl.style.display="none";
             } catch(e) {
                 console.log("Error, missing / invalid parameters.\n"+e);
                 return;
@@ -1009,7 +1052,8 @@
                 parseSavedPlans(JSON.parse(ls.getItem('plans')));
         }
 
-        const timeRegEx = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])$/;
+        const eTimes = ["partial_begins", "full_begins", "full_ends", "partial_ends"];
+        const timeRegEx = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])(|\.[0-9][0-9]*)$/;
         if ( window.location.hash.length )
             readURL();
         else
