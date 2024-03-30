@@ -51,7 +51,7 @@ $alerts = @(
 
     @{'base'='c3'; 'offset'=-60; 'tts'='Totality ends in 60 seconds'; 'title'='Totality Ends in 60 seconds'},
     @{'base'='c3'; 'offset'=-30; 'tts'='30 seconds'; 'title'='Totality ends in 30 seconds'},
-    @{'base'='c3'; 'offset'=-20; 'tts'='20 seconds'; 'title'='Totality ends in 30 seconds'},
+    @{'base'='c3'; 'offset'=-20; 'tts'='20 seconds'; 'title'='Totality ends in 20 seconds'},
     @{'base'='c3'; 'offset'=-10; 'tts'='10 seconds'; 'title'='Totality ends in 10 seconds'},
     @{'base'='c3'; 'offset'=0; 'tts'='Totality ending now'; 'title'='Totality Ending Now';'type'='Warning'},
     @{'base'='c3'; 'offset'=3; 'tts'='Look for Baily''s Beads'; 'title'='Baily''s Beads';'type'='Warning'},
