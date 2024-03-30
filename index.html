@@ -39,6 +39,7 @@
         background-color: lightskyblue;
         margin: 0;
         padding: 15px;
+        font-size: 1.1em;
         border-bottom: 1px solid blue;
     }
 
@@ -336,7 +337,7 @@
         </td></tr></table>
         <div id="warnDiv"></div>
         <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span> before and after Totality.</h3><table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
-        <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.</h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
+        <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.<br /><input type='checkbox' id="invertBailys"> Invert Baily's collection order post-totality ( C3 ) </h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
         <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
         <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
 
@@ -548,7 +549,8 @@
         function generateSharpCap() {
             const partialInterval = parseInt(document.getElementById("partialInterval").value),
                 partialCount = parseInt(document.getElementById("partialCount").value),
-                bailysInterval = parseInt(document.getElementById("bailysInterval").value);
+                bailysInterval = parseInt(document.getElementById("bailysInterval").value),
+                invertBailys = document.getElementById("invertBailys").checked
             try {
                 let maxTime= [ 0, '' ];
                 var alerts=[];
@@ -666,6 +668,39 @@
                     output.push("");
                 }
             });
+            if(bailysInterval>0 && invertBailys) {
+                p = "invertBailys";
+                output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
+                indent+=4;
+                preOutput.push("    # "+"#".repeat(36),"    # "+p+"Collection Plan","    # "+"#".repeat(36));
+                let t = document.getElementById("bailysPlan");
+                var lastRes = "";
+                var rowPseudo = "";
+                for( var row=(t.rows.length-1); row>=0; row-- ) {
+                    let rowID = t.rows[row].cells[0].childNodes[0].value;
+                    rowPseudo = "Step: "+(row+1).toString()+" - Capture "+document.getElementById(rowID+"count").value+" "+document.getElementById(rowID+"type").value;
+                    rowPseudo += " at Exposure "+document.getElementById(rowID+"exposure").value + " seconds";
+                    output.push(' '.repeat(indent)+"SET EXPOSURE TO "+document.getElementById(rowID+"exposure").value);
+                    if(document.getElementById(rowID+"resolution").value!="" && document.getElementById(rowID+"resolution").value!=lastRes) {
+                        output.push(' '.repeat(indent)+"SET RESOLUTION TO "+document.getElementById(rowID+"resolution").value);
+                        rowPseudo += " at Resollution "+document.getElementById(rowID+"resolution").value;
+                    }
+                    var secVerb = "";
+                    if(document.getElementById(rowID+"type").value=="seconds")
+                        secVerb = " SECONDS ";
+
+                    var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,2);
+                    output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
+                    preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
+                    output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
+                    lastRes=document.getElementById(rowID+"resolution").value;
+                    preOutput.push("    # "+rowPseudo);
+                }
+                preOutput.push("    #","    #");
+                indent-=4;
+                output.push(' '.repeat(indent)+"END SUB")
+                output.push("");
+            }
 
             function addWaitSub(title,startTime,offsetTime) {
                 output.push(' '.repeat(indent)+"DEF SUB waitFor"+title)
@@ -809,9 +844,12 @@
                 stopTime = secondsToTime(c3_seconds + bailysInterval);
                 output.push(' '.repeat(indent)+"IF EARLIER THAN LOCALTIME "+stopTime);
                 indent+=4;
-                preOutput.push("    #","    # Collect 'bailysCollection' every "+document.getElementById("bailysDelay").value+" seconds, until "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval));
+                var subName = "bailysCollection";
+                if(invertBailys)
+                    subName = "invertBailysCollection"
+                preOutput.push("    #","    # Collect '"+subName+"' every "+document.getElementById("bailysDelay").value+" seconds, until "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval));
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPostEclipse"');
-                addCollection("bailysCollection",stopTime,document.getElementById("bailysDelay").value);
+                addCollection(subName,stopTime,document.getElementById("bailysDelay").value);
                 indent-=4;
                 output.push(' '.repeat(indent)+"END IF");
                 output.push("");
@@ -946,7 +984,11 @@
         function parseSavedParams(params) {
             for( const [k,v] of Object.entries(params) ) {
                 try {
-                    document.getElementById(k).value = v;
+                    if(k=="invertBailys") {
+                        document.getElementById(k).checked = v;
+                    } else {
+                        document.getElementById(k).value = v;
+                    }
                 } catch(e) {
                     // pass;
                 }
@@ -1022,16 +1064,24 @@
             ["partial_begins", "partial_ends","full_begins", "full_ends",
              "bailysInterval","partialInterval", "partialCount",
              "gain","offset","output","profile",
-             "bailysDelay","totalityDelay",
+             "bailysDelay","totalityDelay","invertBailys",
              "generatePSConfig","psConfigOptionNotifications"].forEach((a) => {
                 params[a]=document.getElementById(a).value;
                 if(hashMode) {
-                        params.push(a+'='+document.getElementById(a).value)
+                        if(a=="invertBailys")
+                            params.push(a+'='+document.getElementById(a).checked);
+                        else
+                            params.push(a+'='+document.getElementById(a).value);
+                        
                 } else {
-                    if(document.getElementById(a).value.match(/^[0-9\.\-]+$/))
-                        params[a]=parseFloat(document.getElementById(a).value);
-                    else
-                        params[a]=document.getElementById(a).value;
+                    if(a=="invertBailys") {
+                        params[a]=document.getElementById(a).checked;
+                    } else {
+                        if(document.getElementById(a).value.match(/^[0-9\.\-]+$/))
+                            params[a]=parseFloat(document.getElementById(a).value);
+                        else
+                            params[a]=document.getElementById(a).value;
+                    }
                 }
             });
             if(hashMode)
