@@ -651,9 +651,9 @@
                 SharpCapSequenceEl = document.getElementById( 'SharpCapSequence' ),
                 generatePSConfigEl = document.getElementById( 'generatePSConfig' );
 
-            ["bailysInterval","partialCount","partialInterval","gain","offset","output","profile","generatePSConfig","psConfigOptionNotifications"].forEach((a) => {
-                preOutput.push("    # "+a+": "+document.getElementById(a).value);
-            });
+            for( const [k,v] of Object.entries(dumpParams()) ) {
+                preOutput.push("    # "+k+": "+v);
+            }
             preOutput.push("    #","    #");
             var output = new Array();
             var indent = 4;
