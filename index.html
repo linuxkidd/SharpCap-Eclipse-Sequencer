@@ -20,6 +20,29 @@
         flex-direction: row;
     }
 
+    #actionButtonsDiv {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row;
+        margin: 30px 15px;
+    }
+
+    #helpText {
+        display: none;
+        z-index: 10;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        border: 1px solid black;
+        max-width: 120em;
+        overflow: wrap;
+        max-height: 100%;
+        min-height: 3em;
+        background: #eee;
+        padding: 1em;
+    }
+
     #bodyWrapper {
         max-width: 1000px;
         margin: auto;
@@ -249,15 +272,14 @@
         <table id="wrapperTable"><tr style="vertical-align: top;"><td>
             <table class="params">
                 <tr><th colspan="2" class="headerBlock">Eclipse Times</th></tr>
-
-                <tr><td class="label">(C1) Partial Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_begins" type="text"></td></tr>
-                <tr><td class="label">(C2) Full Begins:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_begins' type="text"></td></tr>
-                <tr><td class="label">(C3) Full Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_ends' type="text"></td></tr>
-                <tr><td class="label">(C4) Partial Ends:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text"></td></tr>
+                <tr><td class="label">(C1) Partial Begins <a href="javascript://" onClick="displayHelp(this,'The local time when the Moon becomes visible over the Sun\'s disk, commonly called 1st contact.');">[?]</a>:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_begins" type="text"></td></tr>
+                <tr><td class="label">(C2) Full Begins <a href="javascript://" onClick="displayHelp(this,'The local time when the Moon first fully covers the entire disk of the Sun, commonly called 2nd contact.');">[?]</a>:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_begins' type="text"></td></tr>
+                <tr><td class="label">(C3) Full Ends <a href="javascript://" onClick="displayHelp(this,'The local time when the Moon begins to move away from fully covering the Sun\'s disk., commonly called 3rd contact.');">[?]</a>:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id='full_ends' type="text"></td></tr>
+                <tr><td class="label">(C4) Partial Ends <a href="javascript://" onClick="displayHelp(this,'The local time when the Moon leaves the Sun\'s disk, commonly called 4th contact.');">[?]</a>:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text"></td></tr>
             </table></td><td>
                 <table class="params" id="phaseInterval">
                     <th colspan="2" class="headerBlock">Collection Timing</th>
-                    <tr><td class="label">Partial Eclipse Count:</td><td>
+                    <tr><td class="label">Partial Eclipse Count <a href="javascript://" onClick="displayHelp(this,'How many evenly spaced collections of the Partial Collection Plan to perform between C1 and C2, and between C3 and C4.  This is preferred over the Partial Eclipse Interval for imagers wanting to create a photo montage based on the percentage of eclipse since the Pre and Post Totality Partial phases are usually different lengths of time.');">[?]</a>:</td><td>
                         <select id='partialCount' onChange="checkVisible('partialCount');">
                             <option value="0">Disabled</option>
                             <option value="5">5 times</option>
@@ -268,7 +290,7 @@
                             <option value="100">100 times</option>
                         </select> before and after
                     </td></tr>
-                    <tr><td class="label">Partial Eclipse Interval:</td><td>
+                    <tr><td class="label">Partial Eclipse Interval <a href="javascript://" onClick="displayHelp(this,'What time interval to collect the Partial Collection Plan between C1 and C2, and between C3 and C4.  Cannot be used with Partial Eclipse Count.');">[?]</a>:</td><td>
                         <select id='partialInterval' onChange="checkVisible('partialInterval');">
                             <option value="0">Disabled</option>
                             <option value="30">every 30 seconds</option>
@@ -284,7 +306,7 @@
                             <option value="600">every 10 minute</option>
                         </select>
                     </td></tr>
-                    <tr><td class="label">Baily's Beads Capture Offset:</td><td>
+                    <tr><td class="label">Baily's Beads Capture Offset <a href="javascript://" onClick="displayHelp(this,'How many seconds before C2, and after C3 to run the Baily\'s Bead Collection Plan.');">[?]</a>:</td><td>
                         <select id='bailysInterval' onChange="checkVisible('bailysInterval');">
                             <option value="0">Disabled</option>
                             <option value="6">+/- 6 seconds</option>
@@ -296,12 +318,13 @@
                             <option value="60">+/- 60 seconds</option>
                         </select><input type='hidden' id='totalityInterval' value='1'/>
                     </td></tr>
+                    <tr><td class="label">Max Delay Between Exposures <a href="javascript://" onClick="displayHelp(this,'SharpCap maintains a frame buffer in memory.  Immediately capturing frames after a parameter change can result in some frames of the prior setting being collected.  To reduce this risk, a delay is inserted equivalent to 5 x the new exposure setting, or this Max Delay Between Exposures value, whichever is shorter.  Set to 0 to remove the delay between exposures.');">[?]</a>:<br /></td><td><input type="number" id="maxDelay" value="2" min="0"/> seconds</td></tr>
                 </table>
 
                 <table class="params">
-                    <tr><th colspan="2" class="headerBlock">Powershell Script Config</th></tr>
+                    <tr><th colspan="2" class="headerBlock">PowerShell Companion Script</th></tr>
                     <tr>
-                        <td class="label"><label for="generatePSConfig">Use the Powershell Companion Script:</label></td>
+                        <td class="label"><label for="generatePSConfig">Use the PowerShell Companion Script <a href="javascript://" onClick="displayHelp(this,'Set to \'Yes\' to spawn the PowerShell Companion Script at the start of the Sequence.  The script will provide announcements and Windows Notifications during key times of the eclipse. See the \'Instructions\' at the top of the page for instructions on where to save the PowerShell Companion Script.');">[?]</a>:</label></td>
                         <td>
                             <select id="generatePSConfig" onChange="checkPSConfigOptions();">
                                 <option value="Yes" selected="selected">Yes</option>
@@ -310,7 +333,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="label"><label for="psConfigOptionNotifications">Display Windows Notifications:</label></td>
+                        <td class="label"><label for="psConfigOptionNotifications">Display Windows Notifications <a href="javascript://" onClick="displayHelp(this,'Set to \'Yes\' to display the Windows notifications throughout the eclipse.  When set to \'No\', only the text to speech announcements for key events of the eclipse will occur.');">[?]</a>:</label></td>
                         <td>
                             <select id="psConfigOptionNotifications" class="psConfigOption" onChange="hideOutput();">
                                 <option value="Yes" selected="selected">Yes</option>
@@ -322,9 +345,9 @@
             </td><td>
             <table class="params">
                 <th colspan="2" class="headerBlock">Camera Settings</th>
-                <tr><td class="label">Camera Gain:</td><td><input onChange="hideOutput();" type="number" id="gain" value="26" min="0"/></td></tr>
-                <tr><td class="label">Camera Offset:</td><td><input onChange="hideOutput();" type="number" id="offset" value="70" min="0"/></td></tr>
-                <tr><td class="label">Output Format:</td><td>
+                <tr><td class="label">Camera Gain <a href="javascript://" onClick="displayHelp(this,'Gain setting for the Camera to be set at the beginning of the Sequence.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="gain" value="26" min="0"/></td></tr>
+                <tr><td class="label">Camera Offset <a href="javascript://" onClick="displayHelp(this,'Offset setting for the Camera to be set at the beginning of the Sequence.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="offset" value="70" min="0"/></td></tr>
+                <tr><td class="label">Output Format <a href="javascript://" onClick="displayHelp(this,'The file format to use when saving the captured images.');">[?]</a>:</td><td>
                     <select id="output" onChange="hideOutput();">
                         <option value="SER file (*.ser)">SER</option>
                         <option value="PNG files (*.png)">PNG</option>
@@ -332,14 +355,17 @@
                         <option value="TIFF files (*.tif)">TIFF</option>
                         <option value="ADV files (*.adv)">ADV</option>
                     </select></td></tr>
-                <tr><td class="label">SharpCap Profile<br />(blank for none):</td><td><input onChange="hideOutput();" type="text" id="profile" value="" /></td></tr>
+                <tr><td class="label">SharpCap Profile <a href="javascript://" onClick="displayHelp(this,'If you have a saved Camera Profile in SharpCap, you can provide the exact name of that profile here.  The profile will be loaded at the beginning of the Sequence.');">[?]</a><br />(blank for none):</td><td><input onChange="hideOutput();" type="text" id="profile" value="" /></td></tr>
             </table>
         </td></tr></table>
         <div id="warnDiv"></div>
         <div class="planDiv" id="partialPlanDiv"><h3 class="headerBlock">Partial Phase Collection Plan :: repeat <span id="partialPlanHeader"></span> before and after Totality.</h3><table class="planTable" id="partialPlan"></table><input type='button' class="wideButton" value="Add Partial Plan Row" onClick='addPlanLine("partialPlan")' /></div>
-        <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds for <span id="bailysPlanHeader"></span> on either side of Totality.<br /><input type='checkbox' id="invertBailys" onChange="hideOutput();"> Invert Baily's collection order after totality ( C3 ) </h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
-        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
-        <input type="button" style="max-width: 45%; margin: 30px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
+        <div class="planDiv" id="bailysPlanDiv"><h3 class="headerBlock">Baily's Beads Collection Plan :: repeat every <input id="bailysDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds <a href="javascript://" onClick="displayHelp(this,'Providing a non-zero value here will cause each collection loop to be padded to consume at least this many seconds of time.');">[?]</a> for <span id="bailysPlanHeader"></span> on either side of Totality.<br /><input type='checkbox' id="invertBailys" onChange="hideOutput();"> Invert Baily's collection order after totality ( C3 )  <a href="javascript://" onClick="displayHelp(this,'If your Baily\'s Beads capture plan should be repeated in reverse at C3, compared to how it runs at C2, check this box.');">[?]</a></h3><table class="planTable" id="bailysPlan"></table><input type='button' class="wideButton" value="Add Bailys Plan Row" onClick='addPlanLine("bailysPlan")' /></div>
+        <div class="planDiv" id="totalityPlanDiv"><h3 class="headerBlock">Totality Collection Plan :: repeat every <input id="totalityDelay" onChange="hideOutput();" type="number" value="0" min="0"/> seconds <a href="javascript://" onClick="displayHelp(this,'Providing a non-zero value here will cause each collection loop to be padded to consume at least this many seconds of time.');">[?]</a> during Totality.</h3><table class="planTable" id="totalityPlan"></table><input type='button' class="wideButton" value="Add Totality Plan Row" onClick='addPlanLine("totalityPlan")' /></div>
+        <div id="actionButtonsDiv">
+            <input type="button" style="max-width: 45%; margin: 5px auto; padding: 30px;" value="Generate Sequence" id="generateButton" onClick="generateSharpCap();"/>
+            <input type="button" style="max-width: 45%; margin: 5px auto; padding: 30px;" value="Clear / Reset Settings" id="resetButton" onClick="resetSettings();"/>
+        </div>
 
         <div class="planDiv" id="sequenceDiv" style="display: none;">
             <h3 class="headerBlock">Generated Sequence</h3>
@@ -348,6 +374,7 @@
             placeholder="SharpCap sequence will appear here."></textarea>
         </div>
     </div>
+    <div id="helpText"></div>
     <script type="text/javascript">
 
         window.onerror = function (message,url,line,col,error) {
@@ -439,6 +466,26 @@
             }
 
             hideOutput();
+        }
+
+        function displayHelp(t,text) {
+            var rect = t.getBoundingClientRect();
+            var help = document.getElementById("helpText");
+            help.innerHTML = "<a href='javascript://' onClick='closeHelp();'>[close]</a><br />"+text;
+            var x = rect.left + window.scrollX - 60;
+            var y = rect.bottom + window.scrollY+5;
+            help.style.top = y.toString()+"px";
+            help.style.left = x.toString()+"px";
+            help.style.display = "block";
+            var bottom = y + help.offsetHeight;
+            console.log("Height: "+window.scrollY+ " / " +bottom);
+            if((window.scrollY + window.innerHeight) < bottom) {
+                help.scrollIntoView({ behavior: "smooth", block: "end"});
+            }
+        }
+
+        function closeHelp() {
+            document.getElementById("helpText").style.display = "none";
         }
 
         function hideOutput() {
@@ -689,9 +736,11 @@
                     if(document.getElementById(rowID+"type").value=="seconds")
                         secVerb = " SECONDS ";
 
-                    var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,2);
-                    output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
-                    preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
+                    var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,parseFloat(document.getElementById("maxDelay").value));
+                    if(delaySecs>0) {
+                        output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
+                        preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
+                    }
                     output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
                     lastRes=document.getElementById(rowID+"resolution").value;
                     preOutput.push("    # "+rowPseudo);
@@ -1108,6 +1157,13 @@
             readURL();
         else
             loadState();
+
+        function resetSettings() {
+            if(confirm("This will completely erase all plans and return all settings to their default values.  Are you sure?  Press 'OK' to confirm.")) {
+                window.localStorage.clear();
+                window.location.reload();
+            }
+        }
 
         if(document.getElementById("totalityPlan").rows.length==0)
             addPlanLine("totalityPlan");
