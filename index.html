@@ -478,7 +478,6 @@
             help.style.left = x.toString()+"px";
             help.style.display = "block";
             var bottom = y + help.offsetHeight;
-            console.log("Height: "+window.scrollY+ " / " +bottom);
             if((window.scrollY + window.innerHeight) < bottom) {
                 help.scrollIntoView({ behavior: "smooth", block: "end"});
             }
