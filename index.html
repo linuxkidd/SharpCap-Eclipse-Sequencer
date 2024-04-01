@@ -6,191 +6,190 @@
     <meta charset="utf-8">
     <meta name="viewport" 
           content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+        h1 {
+            color: blue;
+        }
+
+        #headerDiv {
+            margin-bottom: 1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-direction: row;
+        }
+
+        #actionButtonsDiv {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-direction: row;
+            margin: 30px 15px;
+        }
+
+        #helpText {
+            display: none;
+            z-index: 10;
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            border: 1px solid black;
+            max-width: 120em;
+            overflow: wrap;
+            max-height: 100%;
+            min-height: 3em;
+            background: #eee;
+            padding: 1em;
+            margin-right: 2em;
+        }
+
+        #bodyWrapper {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        #FlipDivNotes,#warnDiv {
+            display: none;
+        }
+
+        #warnDiv {
+            background: rgba(255,0,0,1);
+            color: white;
+            padding: 15px;
+        }
+
+        .headerBlock {
+            background-color: lightskyblue;
+            margin: 0;
+            padding: 15px;
+            font-size: 1.1em;
+            border-bottom: 1px solid blue;
+        }
+
+        .goodInput {
+            border: 2px solid #0f0;
+            background: rgba(0,0,0,0);
+        }
+
+        .badInput {
+            border: 2px solid #f00;
+            background: rgba(0,0,0,0);
+        }
+
+        .disabledInput {
+            border: 1px solid #000;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            background: #eee;
+            padding: 1px 3px;
+        }
+
+        div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table td {
+            padding: 3px;
+        }
+
+        ul.topMenu {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #666;
+            margin-bottom: 15px;
+        }
+
+        ul.topMenu li {
+        float: left;
+        border-right: 1px solid #bbb;
+        }
+
+        ul.topMenu li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        ul.topMenu li a:hover {
+        background-color: #111;
+        }
+
+        ul.topMenu li a.active {
+            background-color: #04AA6D;
+        }
+
+        ol li {
+            padding: 3px;
+        }
+
+        dl dt {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        dl dd {
+            padding: 3px;
+        }
+
+        .flipDiv {
+            max-width: 80%;
+        }
+
+        table.params {
+            margin: 10px auto;
+        }
+
+        .params {
+            border: 1px solid;
+        }
+
+        .planDiv, .psPlanDiv {
+            border: 1px solid;
+            margin: 10px auto;
+            min-width: 1200px;
+            text-align: left;
+        }
+
+        .planTable {
+            width: 100%;
+        }
+
+        .planTable td {
+            border-bottom: 1px solid black;
+            text-align: center;
+        }
+
+        textarea {
+            margin-top: 15px;
+            width: 70%;
+        }
+
+        input[type="number"] {
+            text-align: right;
+            max-width: 60px;
+        }
+        input[type="text"] {
+            text-align: right;
+            max-width: 100px;
+        }
+        .wideButton {
+            width: 100%;
+        }
+    </style>
 </head>
-<style type="text/css">
-    h1 {
-        color: blue;
-    }
-
-    #headerDiv {
-        margin-bottom: 1em;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-direction: row;
-    }
-
-    #actionButtonsDiv {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-direction: row;
-        margin: 30px 15px;
-    }
-
-    #helpText {
-        display: none;
-        z-index: 10;
-        position: absolute;
-        left: 10px;
-        top: 10px;
-        border: 1px solid black;
-        max-width: 120em;
-        overflow: wrap;
-        max-height: 100%;
-        min-height: 3em;
-        background: #eee;
-        padding: 1em;
-        margin-right: 2em;
-    }
-
-    #bodyWrapper {
-        max-width: 1200px;
-        margin: auto;
-    }
-
-    #FlipDivNotes,#warnDiv {
-        display: none;
-    }
-
-    #warnDiv {
-        background: rgba(255,0,0,1);
-        color: white;
-        padding: 15px;
-    }
-
-    .headerBlock {
-        background-color: lightskyblue;
-        margin: 0;
-        padding: 15px;
-        font-size: 1.1em;
-        border-bottom: 1px solid blue;
-    }
-
-    .goodInput {
-        border: 2px solid #0f0;
-        background: rgba(0,0,0,0);
-    }
-
-    .badInput {
-        border: 2px solid #f00;
-        background: rgba(0,0,0,0);
-    }
-
-    .disabledInput {
-        border: 1px solid #000;
-        background: rgba(0,0,0,0.3);
-    }
-
-    .code {
-        font-family: 'Courier New', monospace;
-        font-size: 0.9em;
-        background: #eee;
-        padding: 1px 3px;
-    }
-
-    div {
-        display: flex;
-        flex-direction: column;
-    }
-
-    table {
-        border-collapse: collapse;
-    }
-
-    table td {
-        padding: 3px;
-    }
-
-    ul.topMenu {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background-color: #666;
-        margin-bottom: 15px;
-    }
-
-    ul.topMenu li {
-      float: left;
-      border-right: 1px solid #bbb;
-    }
-
-    ul.topMenu li a {
-        display: block;
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-    }
-
-    ul.topMenu li a:hover {
-      background-color: #111;
-    }
-
-    ul.topMenu li a.active {
-        background-color: #04AA6D;
-    }
-
-    ol li {
-        padding: 3px;
-    }
-
-    dl dt {
-        font-weight: bold;
-        font-size: 1.1em;
-    }
-
-    dl dd {
-        padding: 3px;
-    }
-
-    .flipDiv {
-        max-width: 80%;
-    }
-
-    table.params {
-        margin: 10px auto;
-    }
-
-    .params {
-        border: 1px solid;
-    }
-
-    .planDiv, .psPlanDiv {
-        border: 1px solid;
-        margin: 10px auto;
-        min-width: 1200px;
-        text-align: left;
-    }
-
-    .planTable {
-        width: 100%;
-    }
-
-    .planTable td {
-        border-bottom: 1px solid black;
-        text-align: center;
-    }
-
-    textarea {
-        margin-top: 15px;
-        width: 70%;
-    }
-
-    input[type="number"] {
-        text-align: right;
-        max-width: 60px;
-    }
-    input[type="text"] {
-        text-align: right;
-        max-width: 100px;
-    }
-    .wideButton {
-        width: 100%;
-    }
-</style>
- 
 <body>
     <div id="bodyWrapper">
         <h1>
