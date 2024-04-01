@@ -111,8 +111,8 @@
         }
 
         ul.topMenu li {
-        float: left;
-        border-right: 1px solid #bbb;
+            float: left;
+            border-right: 1px solid #bbb;
         }
 
         ul.topMenu li a {
@@ -124,7 +124,7 @@
         }
 
         ul.topMenu li a:hover {
-        background-color: #111;
+            background-color: #111;
         }
 
         ul.topMenu li a.active {
@@ -278,7 +278,7 @@
                 <tr><td class="label">(C4) Partial Ends <a href="javascript://" onClick="displayHelp(this,'The local time when the Moon leaves the Sun\'s disk, commonly called 4th contact.');">[?]</a>:</td><td><input onChange="verifyTime(this);" onKeyUp="verifyTime(this);" id="partial_ends" type="text"></td></tr>
             </table></td><td>
                 <table class="params" id="phaseInterval">
-                    <th colspan="2" class="headerBlock">Collection Timing</th>
+                    <tr><th colspan="2" class="headerBlock">Collection Timing</th></tr>
                     <tr><td class="label">Partial Eclipse Count <a href="javascript://" onClick="displayHelp(this,'How many evenly spaced collections of the Partial Collection Plan to perform between C1 and C2, and between C3 and C4.  This is preferred over the Partial Eclipse Interval for imagers wanting to create a photo montage based on the percentage of eclipse since the Pre and Post Totality Partial phases are usually different lengths of time.');">[?]</a>:</td><td>
                         <select id='partialCount' onChange="checkVisible('partialCount');">
                             <option value="0">Disabled</option>
@@ -344,7 +344,7 @@
                 </table>
             </td><td>
             <table class="params">
-                <th colspan="2" class="headerBlock">Camera Settings</th>
+                <tr><th colspan="2" class="headerBlock">Camera Settings</th></tr>
                 <tr><td class="label">Camera Gain <a href="javascript://" onClick="displayHelp(this,'Gain setting for the Camera to be set at the beginning of the Sequence. Leave blank to not change the SharpCap setting.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="gain" value="26" min="0"/></td></tr>
                 <tr><td class="label">Camera Offset <a href="javascript://" onClick="displayHelp(this,'Offset setting for the Camera to be set at the beginning of the Sequence. Leave blank to not change the SharpCap setting.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="offset" value="70" min="0"/></td></tr>
                 <tr><td class="label">Output Format <a href="javascript://" onClick="displayHelp(this,'The file format to use when saving the captured images.');">[?]</a>:</td><td>
@@ -1178,5 +1178,4 @@
         setTimeout(saveState,750);
     </script>
 </body>
- 
 </html>
