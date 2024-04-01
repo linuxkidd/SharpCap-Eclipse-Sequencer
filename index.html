@@ -346,8 +346,8 @@
             </td><td>
             <table class="params">
                 <th colspan="2" class="headerBlock">Camera Settings</th>
-                <tr><td class="label">Camera Gain <a href="javascript://" onClick="displayHelp(this,'Gain setting for the Camera to be set at the beginning of the Sequence.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="gain" value="26" min="0"/></td></tr>
-                <tr><td class="label">Camera Offset <a href="javascript://" onClick="displayHelp(this,'Offset setting for the Camera to be set at the beginning of the Sequence.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="offset" value="70" min="0"/></td></tr>
+                <tr><td class="label">Camera Gain <a href="javascript://" onClick="displayHelp(this,'Gain setting for the Camera to be set at the beginning of the Sequence. Leave blank to not change the SharpCap setting.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="gain" value="26" min="0"/></td></tr>
+                <tr><td class="label">Camera Offset <a href="javascript://" onClick="displayHelp(this,'Offset setting for the Camera to be set at the beginning of the Sequence. Leave blank to not change the SharpCap setting.');">[?]</a>:</td><td><input onChange="hideOutput();" type="number" id="offset" value="70" min="0"/></td></tr>
                 <tr><td class="label">Output Format <a href="javascript://" onClick="displayHelp(this,'The file format to use when saving the captured images.');">[?]</a>:</td><td>
                     <select id="output" onChange="hideOutput();">
                         <option value="SER file (*.ser)">SER</option>
@@ -356,7 +356,7 @@
                         <option value="TIFF files (*.tif)">TIFF</option>
                         <option value="ADV files (*.adv)">ADV</option>
                     </select></td></tr>
-                <tr><td class="label">SharpCap Profile <a href="javascript://" onClick="displayHelp(this,'If you have a saved Camera Profile in SharpCap, you can provide the exact name of that profile here.  The profile will be loaded at the beginning of the Sequence.');">[?]</a><br />(blank for none):</td><td><input onChange="hideOutput();" type="text" id="profile" value="" /></td></tr>
+                <tr><td class="label">SharpCap Profile <a href="javascript://" onClick="displayHelp(this,'If you have a saved Camera Profile in SharpCap, you can provide the exact name of that profile here.  The profile will be loaded at the beginning of the Sequence. Leave blank to not load a profile.');">[?]</a><br />(blank for none):</td><td><input onChange="hideOutput();" type="text" id="profile" value="" /></td></tr>
             </table>
         </td></tr></table>
         <div id="warnDiv"></div>
