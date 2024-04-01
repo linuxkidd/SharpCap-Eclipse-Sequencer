@@ -593,11 +593,16 @@
             return(format02d(h)+":"+format02d(m)+":"+format02d(secs))
         }
 
+        function getRV(r,v) {
+            return document.getElementById(r+v).value;
+        }
+
         function generateSharpCap() {
-            const partialInterval = parseInt(document.getElementById("partialInterval").value),
-                partialCount = parseInt(document.getElementById("partialCount").value),
-                bailysInterval = parseInt(document.getElementById("bailysInterval").value),
-                invertBailys = document.getElementById("invertBailys").checked
+            var p = dumpParams();
+            const partialInterval = parseInt(p["partialInterval"]),
+                partialCount = parseInt(p["partialCount"]),
+                bailysInterval = parseInt(p["bailysInterval"]),
+                invertBailys = p["invertBailys"];
             try {
                 let maxTime= [ 0, '' ];
                 var alerts=[];
@@ -652,10 +657,10 @@
             var output = new Array();
             var indent = 4;
 
-            const c1 = document.getElementById("partial_begins").value,
-                c2 = document.getElementById("full_begins").value,
-                c3 = document.getElementById("full_ends").value,
-                c4 = document.getElementById("partial_ends").value,
+            const c1 = p["partial_begins"],
+                c2 = p["full_begins"],
+                c3 = p["full_ends"],
+                c4 = p["partial_ends"],
                 c1_seconds = timeToSeconds(c1),
                 c2_seconds = timeToSeconds(c2),
                 c3_seconds = timeToSeconds(c3),
@@ -673,34 +678,35 @@
 
             hideOutput();
 
-            ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((p) => {
-                let e = document.getElementById(p);
-                if(e.value!=0) {
-                    p = p.replace(/[A-Z].*$/,"");
-                    output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
+            ["partialInterval", "partialCount", "bailysInterval", "totalityInterval"].forEach((param) => {
+                if(p[param]!=0) {
+                    param = param.replace(/[A-Z].*$/,"");
+                    output.push(' '.repeat(indent)+"DEF SUB "+param+"Collection");
                     indent+=4;
-                    preOutput.push("    # "+"#".repeat(36),"    # "+p+"Collection Plan","    # "+"#".repeat(36));
-                    let t = document.getElementById(p+"Plan");
+                    preOutput.push("    # "+"#".repeat(36),"    # "+param+"Collection Plan","    # "+"#".repeat(36));
+                    let t = document.getElementById(param+"Plan");
                     var lastRes = "";
                     var rowPseudo = "";
                     for( var row=0; row<t.rows.length; row++ ) {
                         let rowID = t.rows[row].cells[0].childNodes[0].value;
-                        rowPseudo = "Step: "+(row+1).toString()+" - Capture "+document.getElementById(rowID+"count").value+" "+document.getElementById(rowID+"type").value;
-                        rowPseudo += " at Exposure "+document.getElementById(rowID+"exposure").value + " seconds";
-                        output.push(' '.repeat(indent)+"SET EXPOSURE TO "+document.getElementById(rowID+"exposure").value);
-                        if(document.getElementById(rowID+"resolution").value!="" && document.getElementById(rowID+"resolution").value!=lastRes) {
-                            output.push(' '.repeat(indent)+"SET RESOLUTION TO "+document.getElementById(rowID+"resolution").value);
-                            rowPseudo += " at Resollution "+document.getElementById(rowID+"resolution").value;
+                        rowPseudo = "Step: "+(row+1).toString()+" - Capture "+getRV(rowID,"count")+" "+getRV(rowID,"type");
+                        rowPseudo += " at Exposure "+getRV(rowID,"exposure") + " seconds";
+                        output.push(' '.repeat(indent)+"SET EXPOSURE TO "+getRV(rowID,"exposure"));
+                        if(getRV(rowID,"resolution")!="" && getRV(rowID,"resolution")!=lastRes) {
+                            output.push(' '.repeat(indent)+"SET RESOLUTION TO "+getRV(rowID,"resolution"));
+                            rowPseudo += " at Resollution "+getRV(rowID,"resolution");
                         }
                         var secVerb = "";
-                        if(document.getElementById(rowID+"type").value=="seconds")
+                        if(getRV(rowID,"type")=="seconds")
                             secVerb = " SECONDS ";
 
-                        var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,2);
-                        output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
-                        preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
-                        output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
-                        lastRes=document.getElementById(rowID+"resolution").value;
+                        var delaySecs = Math.min(getRV(rowID,"exposure") * 5, p["maxDelay"]);
+                        if( delaySecs >0 ) {
+                            output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
+                            preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
+                        }
+                        output.push(' '.repeat(indent)+"CAPTURE "+getRV(rowID,"count")+secVerb+" LIVE FRAMES");
+                        lastRes = getRV(rowID,"resolution");
                         preOutput.push("    # "+rowPseudo);
                     }
                     preOutput.push("    #","    #");
@@ -710,33 +716,33 @@
                 }
             });
             if(bailysInterval>0 && invertBailys) {
-                p = "invertBailys";
-                output.push(' '.repeat(indent)+"DEF SUB "+p+"Collection");
+                param = "invertBailys";
+                output.push(' '.repeat(indent)+"DEF SUB "+param+"Collection");
                 indent+=4;
-                preOutput.push("    # "+"#".repeat(36),"    # "+p+"Collection Plan","    # "+"#".repeat(36));
+                preOutput.push("    # "+"#".repeat(36),"    # "+param+"Collection Plan","    # "+"#".repeat(36));
                 let t = document.getElementById("bailysPlan");
                 var lastRes = "";
                 var rowPseudo = "";
                 for( var row=(t.rows.length-1); row>=0; row-- ) {
                     let rowID = t.rows[row].cells[0].childNodes[0].value;
-                    rowPseudo = "Step: "+(row+1).toString()+" - Capture "+document.getElementById(rowID+"count").value+" "+document.getElementById(rowID+"type").value;
-                    rowPseudo += " at Exposure "+document.getElementById(rowID+"exposure").value + " seconds";
-                    output.push(' '.repeat(indent)+"SET EXPOSURE TO "+document.getElementById(rowID+"exposure").value);
-                    if(document.getElementById(rowID+"resolution").value!="" && document.getElementById(rowID+"resolution").value!=lastRes) {
-                        output.push(' '.repeat(indent)+"SET RESOLUTION TO "+document.getElementById(rowID+"resolution").value);
-                        rowPseudo += " at Resollution "+document.getElementById(rowID+"resolution").value;
+                    rowPseudo = "Step: "+(row+1).toString()+" - Capture "+getRV(rowID,"count")+" "+getRV(rowID,"type");
+                    rowPseudo += " at Exposure "+getRV(rowID,"exposure") + " seconds";
+                    output.push(' '.repeat(indent)+"SET EXPOSURE TO "+getRV(rowID,"exposure"));
+                    if(getRV(rowID,"resolution") !="" && getRV(rowID,"resolution") != lastRes) {
+                        output.push(' '.repeat(indent)+"SET RESOLUTION TO "+getRV(rowID,"resolution"));
+                        rowPseudo += " at Resollution "+getRV(rowID,"resolution");
                     }
                     var secVerb = "";
-                    if(document.getElementById(rowID+"type").value=="seconds")
+                    if(getRV(rowID,"type")=="seconds")
                         secVerb = " SECONDS ";
 
-                    var delaySecs = Math.min(document.getElementById(rowID+"exposure").value * 5,parseFloat(document.getElementById("maxDelay").value));
+                    var delaySecs = Math.min(getRV(rowID,"exposure") * 5, p["maxDelay"]);
                     if(delaySecs>0) {
                         output.push(' '.repeat(indent)+"DELAY "+delaySecs.toString());
                         preOutput.push("    # Wait for "+delaySecs.toString()+" seconds");
                     }
-                    output.push(' '.repeat(indent)+"CAPTURE "+document.getElementById(rowID+"count").value+secVerb+" LIVE FRAMES");
-                    lastRes=document.getElementById(rowID+"resolution").value;
+                    output.push(' '.repeat(indent)+"CAPTURE "+getRV(rowID,"count")+secVerb+" LIVE FRAMES");
+                    lastRes=getRV(rowID,"resolution");
                     preOutput.push("    # "+rowPseudo);
                 }
                 preOutput.push("    #","    #");
@@ -799,9 +805,14 @@
             output.push(' '.repeat(indent)+"LIVE MODE");
             output.push(' '.repeat(indent)+'ARRANGE FILES IN ONE FOLDER');
             output.push(' '.repeat(indent)+'TARGETNAME "PartialPreEclipse"');
-            output.push(' '.repeat(indent)+"SET GAIN TO "+document.getElementById("gain").value);
-            output.push(' '.repeat(indent)+"SET OFFSET to "+document.getElementById("offset").value);
-            output.push(' '.repeat(indent)+'SET OUTPUT FORMAT TO "'+document.getElementById("output").value+'"');
+
+            if(p["gain"]!="")
+                output.push(' '.repeat(indent)+"SET GAIN TO "+p["gain"]);
+
+                if(p["offset"]!="")
+                output.push(' '.repeat(indent)+"SET OFFSET to "+p["offset"]);
+
+                output.push(' '.repeat(indent)+'SET OUTPUT FORMAT TO "'+document.getElementById("output").value+'"');
             if(document.getElementById("profile").value!="") {
                 preOutput.push("    # Load profile "+document.getElementById("profile").value);
                 output.push(' '.repeat(indent)+"​LOAD PROFILE "+document.getElementById("profile").value);
@@ -856,8 +867,8 @@
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPreEclipse"');
                 output.push(' '.repeat(indent)+"PLAY SOUND Alert");
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+(totalityDuration+bailysInterval).toString());
-                preOutput.push("    # Collect 'bailysCollection' every "+document.getElementById("bailysDelay").value+" seconds, until "+document.getElementById('full_begins').value);
-                addCollection("bailysCollection",c2,document.getElementById("bailysDelay").value);
+                preOutput.push("    # Collect 'bailysCollection' every "+p["bailysDelay"]+" seconds, until "+p['full_begins']);
+                addCollection("bailysCollection",c2,p["bailysDelay"]);
                 indent-=4;
                 output.push(' '.repeat(indent)+"END IF");
                 output.push("");
@@ -875,8 +886,8 @@
                 output.push(' '.repeat(indent)+'SHOW NOTIFICATION "Remove the Solar Filter!" COLOUR Green DURATION '+totalityDuration.toString());
             }
             output.push(' '.repeat(indent)+'TARGETNAME "FullEclipse"');
-            preOutput.push("    # Collect 'totalityCollection' every "+document.getElementById("totalityDelay").value+" seconds, until "+document.getElementById('full_ends').value);
-            addCollection("totalityCollection",c3,document.getElementById("totalityDelay").value);
+            preOutput.push("    # Collect 'totalityCollection' every "+p["totalityDelay"]+" seconds, until "+c3);
+            addCollection("totalityCollection",c3,p["totalityDelay"]);
             indent-=4;
             output.push(' '.repeat(indent)+"END IF");
             output.push("");
@@ -890,9 +901,9 @@
                 var subName = "bailysCollection";
                 if(invertBailys)
                     subName = "invertBailysCollection"
-                preOutput.push("    #","    # Collect '"+subName+"' every "+document.getElementById("bailysDelay").value+" seconds, until "+secondsToTime(timeToSeconds(document.getElementById('full_ends').value)+bailysInterval));
+                preOutput.push("    #","    # Collect '"+subName+"' every "+p["bailysDelay"]+" seconds, until "+secondsToTime(c3_seconds + bailysInterval));
                 output.push(' '.repeat(indent)+'TARGETNAME "BailysBeadsPostEclipse"');
-                addCollection(subName,stopTime,document.getElementById("bailysDelay").value);
+                addCollection(subName,stopTime,p["bailysDelay"]);
                 indent-=4;
                 output.push(' '.repeat(indent)+"END IF");
                 output.push("");
@@ -946,9 +957,8 @@
             preOutput.push("    #","    # ## End Sequence","    #","    #");
 
             if ( generatePSConfigEl.value === 'Yes' ) {
-                let psConfigOptionNotificationsEl = document.getElementById( 'psConfigOptionNotifications' ),
-                    displayWindowsNotifications = ( psConfigOptionNotificationsEl.value === 'Yes' ) ? '$true' : '$false',
-                    psParams = "-display_windows_notifications " + displayWindowsNotifications;
+                const yn = { "Yes": '$true', "No": '$false' };
+                let psParams = "-display_windows_notifications " + yn[p["psConfigOptionNotifications"]];
                 if ( c1 != "" )
                     psParams += " -c1 "+c1;
                 psParams += " -c2 " + c2 + " -c3 " + c3
@@ -1087,11 +1097,11 @@
                     for( var row=0; row<t.rows.length; row++ ) {
                         let rowID = t.rows[row].cells[0].childNodes[0].value;
                         plans[p].push([
-                            parseFloat(document.getElementById(rowID+"count").value),
-                            document.getElementById(rowID+"type").value,
-                            parseFloat(document.getElementById(rowID+"exposure").value)]);
-                        if(document.getElementById(rowID+"resolution").value!="")
-                            plans[p][plans[p].length - 1].push(document.getElementById(rowID+"resolution").value);
+                            parseFloat(getRV(rowID,"count")),
+                            getRV(rowID,"type"),
+                            parseFloat(getRV(rowID,"exposure"))]);
+                        if(getRV(rowID,"resolution")!="")
+                            plans[p][plans[p].length - 1].push(getRV(rowID,"resolution"));
                     }
                 }
             });
