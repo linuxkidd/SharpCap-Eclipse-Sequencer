@@ -805,10 +805,10 @@
             output.push(' '.repeat(indent)+'ARRANGE FILES IN ONE FOLDER');
             output.push(' '.repeat(indent)+'TARGETNAME "PartialPreEclipse"');
 
-            if(p["gain"]!="")
+            if(p["gain"]!=="")
                 output.push(' '.repeat(indent)+"SET GAIN TO "+p["gain"]);
 
-                if(p["offset"]!="")
+                if(p["offset"]!=="")
                 output.push(' '.repeat(indent)+"SET OFFSET to "+p["offset"]);
 
                 output.push(' '.repeat(indent)+'SET OUTPUT FORMAT TO "'+document.getElementById("output").value+'"');
